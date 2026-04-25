@@ -132,7 +132,7 @@
   },
   {
     "name": "Jalan Braga",
-    "cat": "unik",
+    "cat": "kuliner",
     "tiket": "Gratis",
     "spend": "Rp 50rb - Rp 200rb",
     "desc": "Jalan bersejarah dengan bangunan kolonial, galeri seni, dan kafe-kafe estetik.",
@@ -156,7 +156,7 @@
   },
   {
     "name": "Cihampelas Walk (Ciwalk)",
-    "cat": "unik",
+    "cat": "kuliner",
     "tiket": "Gratis",
     "spend": "Rp 100rb - Rp 500rb",
     "desc": "Mall dengan konsep terbuka (open-air) yang hijau dan menyatu dengan alam.",
@@ -228,7 +228,7 @@
   },
   {
     "name": "Observatorium Bosscha",
-    "cat": "unik",
+    "cat": "wisata",
     "tiket": "Rp 50rb (Sesi kunjungan)",
     "spend": "Rp 50.000",
     "desc": "Teropong bintang tertua di Indonesia dengan arsitektur klasik yang megah.",
@@ -276,7 +276,7 @@
   },
   {
     "name": "Mercusuar Cafe & Resto",
-    "cat": "unik",
+    "cat": "kuliner",
     "tiket": "Rp 20rb (Voucher makan)",
     "spend": "Rp 100rb - Rp 200rb",
     "desc": "Restoran dengan bangunan berbentuk kastil abad pertengahan yang megah di Dago.",
@@ -300,7 +300,7 @@
   },
   {
     "name": "Lawangwangi Creative Space",
-    "cat": "unik",
+    "cat": "kuliner",
     "tiket": "Gratis",
     "spend": "Rp 75rb - Rp 150rb",
     "desc": "Galeri seni kontemporer yang digabung dengan kafe pemandangan lembah.",
@@ -324,7 +324,7 @@
   },
   {
     "name": "Saung Angklung Udjo",
-    "cat": "unik",
+    "cat": "kuliner",
     "tiket": "Rp 70rb - Rp 120rb",
     "spend": "Rp 150.000",
     "desc": "Pusat pelestarian budaya Sunda dengan pertunjukan angklung interaktif.",
