@@ -1,0 +1,546 @@
+<!doctype html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <!-- Primary Meta Tags -->
+<title>Trip Keluarga Bandung - Tasikmalaya</title>
+<meta name="title" content="Trip Keluarga Bandung - Tasikmalaya" />
+<meta name="description" content="Dashboard Timeline - Wisata - Ceklist" />
+
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://adynu.page.gd/trip/" />
+<meta property="og:title" content="Trip Keluarga Bandung - Tasikmalaya" />
+<meta property="og:description" content="Dashboard Timeline - Wisata - Ceklist" />
+
+<!-- X (Twitter) -->
+<meta property="twitter:card" content="summary_large_image" />
+<meta property="twitter:url" content="https://adynu.page.gd/trip/" />
+<meta property="twitter:title" content="Trip Keluarga Bandung - Tasikmalaya" />
+<meta property="twitter:description" content="Dashboard Timeline - Wisata - Ceklist" />
+
+<!-- Meta Tags Generated with https://metatags.io -->
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Google Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Google Fonts - Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --accent-color: #3498db;
+            --bg-light: #f8f9fa;
+            --success-color: #27ae60;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-light);
+            color: var(--primary-color);
+            margin-bottom: 70px;
+            /* Space for bottom nav */
+        }
+
+        .header-banner {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 2rem 1rem;
+            border-bottom-left-radius: 25px;
+            border-bottom-right-radius: 25px;
+            margin-bottom: 1.5rem;
+        }
+
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            margin-bottom: 1rem;
+        }
+
+        .timeline-item {
+            border-left: 3px solid var(--accent-color);
+            padding-left: 20px;
+            position: relative;
+            padding-bottom: 20px;
+        }
+
+        .timeline-item::before {
+            content: "";
+            position: absolute;
+            left: -8px;
+            top: 0;
+            width: 13px;
+            height: 13px;
+            border-radius: 50%;
+            background: var(--accent-color);
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background: white;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+
+        .nav-item {
+            text-align: center;
+            color: #95a5a6;
+            text-decoration: none;
+            font-size: 0.75rem;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .nav-item.active {
+            color: var(--accent-color);
+        }
+
+        .nav-item i {
+            display: block;
+            font-size: 24px;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 0 15px;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .badge-toll {
+            background-color: #e67e22;
+        }
+
+        .badge-traffic {
+            background-color: #e74c3c;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .btn-call {
+            background-color: var(--success-color);
+            color: white;
+            border-radius: 10px;
+        }
+
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .checklist-item input {
+            margin-right: 15px;
+            width: 20px;
+            height: 20px;
+        }
+
+        .completed {
+            text-decoration: line-through;
+            color: #bdc3c7;
+        }
+
+        .icon-box {
+            width: 42px;
+            height: 42px;
+            border: 2px solid var(--accent-color);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent-color);
+            flex-shrink: 0;
+            background-color: #f0f8ff;
+            /* Light blue tint */
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Header -->
+    <div class="header-banner text-center">
+        <h4 class="fw-bold mb-1">Family Trip 2026</h4>
+        <p class="small mb-0 opacity-75">Rangkas - Bandung - Tasikmalaya</p>
+    </div>
+
+    <!-- Container Utama -->
+    <div class="container pb-4">
+
+        <!-- TAB 1: TIMELINE -->
+        <div id="tab-timeline" class="tab-content active">
+            <h5 class="fw-bold mb-3">Timeline Perjalanan</h5>
+
+            <!-- Hari 1 -->
+            <div class="card p-3">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="badge bg-primary">Jumat, 1 Mei 2026</span>
+                </div>
+
+                <div class="timeline-item">
+                    <p class="fw-bold mb-0">12:00 - Berangkat Stasiun Rangkasbitung</p>
+                    <p class="small text-muted">KRL menuju Stasiun Pondok Ranji (8 Orang)</p>
+                    <span class="badge badge-toll">Tiket KRL Rp 8.000/orang</span>
+                </div>
+
+                <div class="timeline-item">
+                    <p class="fw-bold mb-0">14:30 - Penjemputan di Pondok Ranji</p>
+                    <p class="small text-muted">Dijemput Rani & Rendra. Total 10 orang, 2 Mobil.</p>
+                </div>
+
+                <div class="timeline-item">
+                    <p class="fw-bold mb-0">15:00 - Menuju Bandung</p>
+                    <p class="small text-muted">Estimasi: 2.5 - 4 Jam (Tergantung Pasteur)</p>
+                    <div class="d-flex gap-2">
+                        <span class="badge badge-toll">Tol: +Rp 100rb /mobil</span>
+                        <span class="badge badge-toll">Bbm: Isi Penuh</span>
+                    </div>
+                    <p><span class="badge badge-traffic">Padat di KM 47 - 66</span></p>
+                    <a href="https://maps.app.goo.gl/ywKJES5rFqwasM8LA" target="_blank"
+                        class="btn btn-sm btn-outline-primary mt-1"><i class="material-icons align-middle"
+                            style="font-size: 16px;">map</i> Buka Maps Kota Bandung</a>
+
+                </div>
+
+                <div class="timeline-item">
+                    <p class="fw-bold mb-0">19:00 - Jalan-jalan & Check-in Villa</p>
+                    <p class="small text-muted">Makan di area Kota Bandung lalu ke Villa Lembang.</p>
+                    <a href="https://maps.app.goo.gl/t1dDK6MSatB3WfwH6" target="_blank"
+                        class="btn btn-sm btn-outline-primary mt-1"><i class="material-icons align-middle"
+                            style="font-size: 16px;">hotel</i> Navigasi ke Villa</a>
+                </div>
+            </div>
+
+            <!-- Hari 2 -->
+            <div class="card p-3">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="badge bg-primary">Sabtu, 2 Mei 2026</span>
+                </div>
+
+                <div class="timeline-item">
+                    <p class="fw-bold mb-0">09:00 - Wisata Terdekat & Makan Siang</p>
+                    <p class="small text-muted">Eksplor area Lembang/Bandung Utara.</p>
+                    <div class="btn btn-sm btn-outline-primary mt-1" onclick="showTab('wisata', this)"><i
+                            class="material-icons align-middle" style="font-size: 16px;">landscape</i> Lihat Tempat
+                        Wisata</div>
+                </div>
+
+                <div class="timeline-item">
+                    <p class="fw-bold mb-0">13:30 - Berangkat ke Tasikmalaya</p>
+                    <p class="small text-muted">Estimasi: 3 - 4 Jam via Jalur Gentong.</p>
+                    <div class="d-flex gap-2">
+                        <span class="badge badge-toll">Bbm: +Rp 100rb /mobil</span>
+                       </div>
+                        <p><span class="badge badge-traffic">Rawan Macet: Lingkar Nagreg</span></p>
+                    <p> </p><a href="https://www.google.com/maps?q=-7.3177507,108.2215219" target="_blank"
+                        class="btn btn-sm btn-outline-primary mt-1"><i class="material-icons align-middle"
+                            style="font-size: 16px;">home</i> Navigasi ke Tasik</a>
+                </div>
+
+                <div class="timeline-item">
+                    <p class="fw-bold mb-0">18:00 - Sampai di Rumah Tasikmalaya</p>
+                    <p class="small text-muted">Istirahat di Tasik (Jl. Burujul II No.14)</p>
+
+                </div>
+            </div>
+
+            <!-- Hari 3 -->
+            <div class="card p-3">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="badge bg-primary">Minggu, 3 Mei 2026</span>
+                </div>
+
+                <div class="timeline-item">
+                    <p class="fw-bold mb-0">15:00 - Acara Akad & Resepsi</p>
+                    <p class="small text-muted">Lokasi Acara Pernikahan di Tasikmalaya</p>
+                    <a href="https://www.google.com/maps?q=-7.3054637,108.2489170" target="_blank"
+                        class="btn btn-sm btn-outline-primary mt-1"><i class="material-icons align-middle"
+                            style="font-size: 16px;">celebration</i> Navigasi Ke Venue</a>
+                </div>
+
+                <div class="timeline-item">
+                    <p class="fw-bold mb-0">21:00 - Perjalanan Pulang</p>
+                    <p class="small text-muted">Mobil 1 ke Rangkasbitung. Mobil 2 ke Depok.</p>
+                    <div class="d-flex gap-2 mt-2">
+                        <span class="badge bg-dark">Rangkas: ±5-6 Jam</span>
+                        <span class="badge bg-dark">Depok: ±4-5 Jam</span>
+                    </div>
+                    <div class="d-flex gap-2 mt-2">
+                        <span class="badge badge-toll">Tol: +Rp 180rb /mobil</span>
+                        <span class="badge badge-toll">Bbm: +Rp 350rb /mobil</span>
+                    </div>
+                    <p> </p>
+                    <a href="https://maps.app.goo.gl/vWNdWxmGCPZUg41c7" target="_blank"
+                        class="btn btn-sm btn-outline-primary mt-1"><i class="material-icons align-middle"
+                            style="font-size: 16px;">directions</i> Navigasi Ke Rangkas</a>
+                    <a href="https://maps.app.goo.gl/6wbYDfWC8beDjYB17" target="_blank"
+                        class="btn btn-sm btn-outline-primary mt-1"><i class="material-icons align-middle"
+                            style="font-size: 16px;">directions</i> Navigasi Ke Depok</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: WISATA & KULINER -->
+        <div id="tab-wisata" class="tab-content">
+            <h5 class="fw-bold mb-3">Wisata & Kuliner Bandung</h5>
+
+            <div id="wisata-container">
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="text-muted mt-2">Memuat data wisata...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: DARURAT -->
+        <div id="tab-darurat" class="tab-content">
+            <h5 class="fw-bold mb-3">Kontak Penting</h5>
+
+            <div class="card p-3 mb-2">
+                <h6 class="fw-bold small text-uppercase text-muted">Nasional</h6>
+                <div class="d-flex justify-content-between align-items-center mt-2">
+                    <span>Ambulans / Darurat</span>
+                    <a href="tel:112" class="btn btn-sm btn-call px-3">112</a>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mt-2">
+                    <span>Polisi</span>
+                    <a href="tel:110" class="btn btn-sm btn-call px-3">110</a>
+                </div>
+            </div>
+
+            <div class="card p-3 mb-2">
+                <h6 class="fw-bold small text-uppercase text-muted">Lalu Lintas & Tol</h6>
+                <div class="d-flex justify-content-between align-items-center mt-2">
+                    <span>Info Tol (Jasa Marga)</span>
+                    <a href="tel:14080" class="btn btn-sm btn-call px-3">14080</a>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mt-2">
+                    <span>Derek Resmi Tol</span>
+                    <a href="tel:14080" class="btn btn-sm btn-call px-3">Panggil</a>
+                </div>
+            </div>
+
+            <div class="card p-3">
+                <h6 class="fw-bold small text-uppercase text-muted">Rumah Sakit Terdekat</h6>
+                <div class="mb-3 border-bottom pb-2">
+                    <p class="mb-0 fw-bold small">RS Advent Bandung (Rute Bandung)</p>
+                    <a href="tel:0222034386" class="btn btn-sm btn-outline-success mt-1 w-100">Hubungi: 022-2034386</a>
+                </div>
+                <div class="mb-3 border-bottom pb-2">
+                    <p class="mb-0 fw-bold small">RSUD dr. Soekardjo (Tasikmalaya)</p>
+                    <a href="tel:0265331747" class="btn btn-sm btn-outline-success mt-1 w-100">Hubungi: 0265-331747</a>
+                </div>
+                <div>
+                    <p class="mb-0 fw-bold small">RS Sari Asih (Rute Cipularang/Depok)</p>
+                    <a href="tel:0217410000" class="btn btn-sm btn-outline-success mt-1 w-100">Hubungi: 021-7410000</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: PERSIAPAN -->
+        <div id="tab-persiapan" class="tab-content">
+            <h5 class="fw-bold mb-3">Persiapan & Tips</h5>
+
+            <div class="card p-3">
+                <h6 class="fw-bold mb-3">Checklist Barang</h6>
+                <div id="checklist-container">
+                    <!-- Items generated by JS -->
+                </div>
+            </div>
+
+            <div class="card p-3 bg-info-subtle">
+                <h6 class="fw-bold"><i class="material-icons align-middle fs-6">lightbulb</i> Tips Perjalanan Jauh</h6>
+                <ul class="small mb-0 ps-3">
+                    <li>Cek tekanan ban dan air radiator sebelum berangkat.</li>
+                    <li>Pastikan saldo E-Toll cukup (Min. Rp 300rb per mobil).</li>
+                    <li>Siapkan obat anti mabuk perjalanan (Jalur Gentong berkelok).</li>
+                    <li>Istirahat setiap 3 jam mengemudi di Rest Area.</li>
+                    <li>Bawa jaket tebal karena Lembang bisa mencapai 16-18°C di malam hari.</li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <div class="nav-item active" onclick="showTab('timeline', this)">
+            <i class="material-icons">timeline</i>
+            Timeline
+        </div>
+        <div class="nav-item" onclick="showTab('wisata', this)">
+            <i class="material-icons">map</i>
+            Wisata
+        </div>
+        <div class="nav-item" onclick="showTab('darurat', this)">
+            <i class="material-icons">call</i>
+            Darurat
+        </div>
+        <div class="nav-item" onclick="showTab('persiapan', this)">
+            <i class="material-icons">fact_check</i>
+            Checklist
+        </div>
+    </nav>
+
+    <!-- Scripts -->
+    <script>
+        // Fungsi Navigasi Tab
+        function showTab(tabId, el) {
+            // Sembunyikan semua tab
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            // Hapus status aktif di nav
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+
+            // Tampilkan tab yang dipilih
+            document.getElementById('tab-' + tabId).classList.add('active');
+            el.classList.add('active');
+
+            // Scroll ke atas
+            window.scrollTo(0, 0);
+        }
+
+        // Sistem Checklist dengan LocalStorage
+        const defaultChecklist = [
+            "Tiket KRL / Kartu Multi Trip",
+            "KTP & SIM Aktif",
+            "Saldo E-Toll (Min. 300rb)",
+            "Pakaian Ganti (3-4 hari)",
+            "Baju Kondangan & Sepatu",
+            "Obat-obatan Pribadi",
+            "Powerbank & Charger",
+            "Jaket / Sweater (Lembang)",
+            "Payung Lipat"
+        ];
+
+        function initChecklist() {
+            const container = document.getElementById('checklist-container');
+            let savedData = JSON.parse(localStorage.getItem('trip_checklist')) || {};
+
+            defaultChecklist.forEach((item, index) => {
+                const isChecked = savedData[index] ? 'checked' : '';
+                const completedClass = savedData[index] ? 'completed' : '';
+
+                const div = document.createElement('div');
+                div.className = 'checklist-item';
+                div.innerHTML = `
+                    <input type="checkbox" id="item-${index}" ${isChecked} onchange="toggleItem(${index})">
+                    <label for="item-${index}" class="${completedClass}">${item}</label>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function toggleItem(index) {
+            let savedData = JSON.parse(localStorage.getItem('trip_checklist')) || {};
+            const checkbox = document.getElementById(`item-${index}`);
+            const label = checkbox.nextElementSibling;
+
+            if (checkbox.checked) {
+                savedData[index] = true;
+                label.classList.add('completed');
+            } else {
+                delete savedData[index];
+                label.classList.remove('completed');
+            }
+
+            localStorage.setItem('trip_checklist', JSON.stringify(savedData));
+        }
+
+        // Load data wisata dari wisata.json
+        async function loadWisataData() {
+            try {
+                const response = await fetch('wisata.json');
+                const wisataData = await response.json();
+                const container = document.getElementById('wisata-container');
+                container.innerHTML = ''; // Bersihkan loading
+
+                if (wisataData.length === 0) {
+                    container.innerHTML = '<p class="text-center text-muted">Tidak ada data wisata.</p>';
+                    return;
+                }
+
+                wisataData.forEach(item => {
+                    // Tentukan warna dan ikon berdasarkan kategori
+                    let badgeClass = 'bg-primary';
+                    let icon = 'place';
+                    if (item.cat === 'kuliner') { badgeClass = 'bg-danger'; icon = 'restaurant'; }
+                    else if (item.cat === 'oleh') { badgeClass = 'bg-success'; icon = 'shopping_bag'; }
+                    else if (item.cat === 'unik') { badgeClass = 'bg-info text-dark'; icon = 'auto_awesome'; }
+
+                    const card = document.createElement('div');
+                    card.className = 'card p-0 overflow-hidden mb-3';
+                    card.innerHTML = `
+                        <div class="p-3">
+                            <div class="d-flex align-items-start gap-3">
+                                <div class="icon-box">
+                                    <i class="material-icons">${icon}</i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="fw-bold mb-0">${item.name}</h6>
+                                    <p class="small text-muted mb-1 text-capitalize">${item.cat}</p>
+                                </div>
+                            </div>
+                            <p class="small text-secondary mt-2">${item.desc}</p>
+                            <hr class="my-2">
+                            <div class="row small mb-2">
+                                <div class="col-6"><strong>Tiket:</strong><br>${item.tiket || '-'}</div>
+                                <div class="col-6"><strong>Budget:</strong><br>${item.spend || '-'}</div>
+                            </div>
+                            <div class="row small mb-2">
+                                <div class="col-12"><strong>Jam Operational:</strong> ${item.jam || '-'}</div>
+                            </div>
+                            ${item.menu ? `<p class="small mb-2"><strong>Menu:</strong> ${item.menu}</p>` : ''}
+                            ${item.tips ? `<p class="small mt-2"><em>Tips: ${item.tips}</em></p>` : ''}
+                            
+                            <div class="d-flex gap-2 mt-3 flex-wrap">
+                                ${item.maps ? `<a href="${item.maps}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="material-icons align-middle" style="font-size: 16px;">map</i> Maps</a>` : ''}
+                                ${item.ig ? `<a href="${item.ig}" target="_blank" class="btn btn-sm btn-outline-danger"><i class="material-icons align-middle" style="font-size: 16px;">photo_camera</i> Instagram</a>` : ''}
+                                ${item.web ? `<a href="${item.web}" target="_blank" class="btn btn-sm btn-outline-info"><i class="material-icons align-middle" style="font-size: 16px;">language</i> Website</a>` : ''}
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+            } catch (error) {
+                console.error('Error fetching wisata data:', error);
+                document.getElementById('wisata-container').innerHTML = '<p class="text-center text-danger">Gagal memuat data wisata.</p>';
+            }
+        }
+
+        // Jalankan saat load
+        window.onload = function () {
+            initChecklist();
+            loadWisataData();
+        };
+    </script>
+</body>
+
+</html>
