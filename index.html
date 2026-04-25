@@ -241,6 +241,38 @@
             background-color: #f6a8a875;
             color: #080808;
         }
+
+        /* Category Filter Buttons */
+        .category-filter {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 20px;
+            overflow-x: visible;
+            padding-bottom: 10px;
+        }
+
+        .category-btn {
+            padding: 8px 16px;
+            border: 2px solid var(--accent-color);
+            background-color: transparent;
+            color: var(--accent-color);
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            white-space: nowrap;
+            transition: all 0.3s ease;
+        }
+
+        .category-btn:hover {
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        .category-btn.active {
+            background-color: var(--accent-color);
+            color: white;
+        }
     </style>
 </head>
 
@@ -370,7 +402,16 @@
 
         <!-- TAB 2: WISATA & KULINER -->
         <div id="tab-wisata" class="tab-content">
-            <h5 class="fw-bold mb-3">Wisata & Kuliner Bandung</h5>
+            <h5 class="fw-bold mb-3">Wisata & Kuliner Lembang Bandung</h5>
+
+            <!-- Category Filter Buttons -->
+            <div class="category-filter" id="category-filter">
+                <button class="category-btn active" data-category="semua" onclick="filterWisata('semua')">Semua</button>
+                <button class="category-btn" data-category="wisata" onclick="filterWisata('wisata')">Wisata</button>
+                <button class="category-btn" data-category="kuliner" onclick="filterWisata('kuliner')">Kuliner</button>
+                <button class="category-btn" data-category="oleh" onclick="filterWisata('oleh')">Oleh-oleh</button>
+                <button class="category-btn" data-category="unik" onclick="filterWisata('unik')">Unik</button>
+            </div>
 
             <div id="wisata-container">
                 <div class="text-center py-5">
@@ -541,19 +582,43 @@
         }
 
         // Load data wisata dari wisata.json
+        let allWisataData = []; // Store all data untuk filter
+
         async function loadWisataData() {
             try {
                 const response = await fetch('wisata.json');
-                const wisataData = await response.json();
-                const container = document.getElementById('wisata-container');
-                container.innerHTML = ''; // Bersihkan loading
+                allWisataData = await response.json();
+                displayWisata('semua'); // Show all data initially
+            } catch (error) {
+                console.error('Error fetching wisata data:', error);
+                document.getElementById('wisata-container').innerHTML = '<p class="text-center text-danger">Gagal memuat data wisata.</p>';
+            }
+        }
 
-                if (wisataData.length === 0) {
-                    container.innerHTML = '<p class="text-center text-muted">Tidak ada data wisata.</p>';
-                    return;
-                }
+        function filterWisata(category) {
+            // Update active button
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-category="${category}"]`).classList.add('active');
+            
+            // Display filtered data
+            displayWisata(category);
+        }
 
-                wisataData.forEach(item => {
+        function displayWisata(category) {
+            const container = document.getElementById('wisata-container');
+            container.innerHTML = ''; // Bersihkan
+
+            // Filter data berdasarkan kategori
+            const filtered = category === 'semua' ? allWisataData : allWisataData.filter(item => item.cat === category);
+
+            if (filtered.length === 0) {
+                container.innerHTML = '<p class="text-center text-muted">Tidak ada data wisata.</p>';
+                return;
+            }
+
+            filtered.forEach(item => {
                     // Tentukan warna dan ikon berdasarkan kategori
                     let badgeClass = 'bg-primary';
                     let icon = 'place';
@@ -609,10 +674,6 @@
                     `;
                     container.appendChild(card);
                 });
-            } catch (error) {
-                console.error('Error fetching wisata data:', error);
-                document.getElementById('wisata-container').innerHTML = '<p class="text-center text-danger">Gagal memuat data wisata.</p>';
-            }
         }
 
         // Jalankan saat load
