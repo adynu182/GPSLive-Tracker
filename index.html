@@ -227,6 +227,18 @@
             font-size: 0.7rem;
         }
 
+        .info-box-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            margin-right: 4px;
+        }
+
+        .info-box strong .info-box-icon {
+            margin-right: 6px;
+        }
+
         /* Tiket - Orange Soft */
         .info-box-tiket {
             background-color: #f8bc8369;
@@ -636,30 +648,52 @@
                                     <i class="material-icons">${icon}</i>
                                 </div>
                                 <div class="flex-grow-1">
-                                    <h6 class="fw-bold mb-0">${item.name}</h6>
-                                    <p class="small text-muted mb-1 text-capitalize">${item.cat}</p>
+                                    <div class="d-flex align-items-center justify-content-between gap-3">
+                                        <div>
+                                            <h6 class="fw-bold mb-0">${item.name}</h6>
+                                            <p class="small text-muted mb-1 text-capitalize">${item.cat}</p>
+                                        </div>
+                                        <div class="text-end">
+                                            <p class="info-box-value badge bg-warning text-light">${item.rating != null ? item.rating.toFixed(1) : '-'} ★ (${item.jumlah_review != null ? item.jumlah_review.toLocaleString('id-ID') : '-'})</p></p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             <p class="small text-secondary mt-2">${item.desc}</p>
                             <hr class="my-2">
                             <div class="mx-auto" style="display: flex; gap: 10px;">
                                 <div class="col-6" style="flex: 1;">
-                                    <div class="info-box info-box-tiket">
-                                        <strong>Tiket</strong>
+                                    <div class="info-box info-box-budget">
+                                        <strong><i class="material-icons info-box-icon" style="font-size: 14px;">receipt</i>Tiket</strong>
                                         <div class="info-box-value">${item.tiket || '-'}</div>
                                     </div>
                                 </div>
                                 <div class="col-6" style="flex: 1;">
                                     <div class="info-box info-box-budget">
-                                        <strong>Budget</strong>
+                                        <strong><i class="material-icons info-box-icon" style="font-size: 14px;">attach_money</i>Budget</strong>
                                         <div class="info-box-value">${item.spend || '-'}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mx-auto" style="display: flex; gap: 10px;">
+                                <div class="col-6" style="flex: 1;">
+                                    <div class="info-box info-box-tiket">
+                                        <strong><i class="material-icons info-box-icon" style="font-size: 14px;">location_on</i>Dari Villa</strong>
+                                        <div class="info-box-value">${item.jarak_villa != null ? item.jarak_villa + ' km' : '-'} (${item.estimasi_villa != null ? item.estimasi_villa + ' menit' : '-'})</div>
+                                    </div>
+                                </div>
+                                <div class="col-6" style="flex: 1;">
+                                    <div class="info-box info-box-tiket">
+                                        <strong><i class="material-icons info-box-icon" style="font-size: 14px;">location_on</i>Kota Bandung</strong>
+                                        <div class="info-box-value">${item.jarak_kota != null ? item.jarak_kota + ' km' : '-'} (${item.estimasi_kota != null ? item.estimasi_kota + ' menit' : '-'})</div>
                                     </div>
                                 </div>
                             </div>
                             <div class="row small mb-2">
                                 <div class="col-12">
                                     <div class="info-box info-box-jam">
-                                        <strong>Jam Buka : ${item.jam || '-'}
+                                        <strong><i class="material-icons info-box-icon" style="font-size: 14px;">schedule</i>Jam Buka</strong>
+                                        <div class="info-box-value">${item.jam || '-'}</div>
                                     </div>
                                 </div>
                             </div>
