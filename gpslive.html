@@ -4,27 +4,26 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LokasiBareng – Real-time GPS Sharing</title>
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
   :root {
-    --bg: #0a0e17;
-    --surface: #111827;
-    --card: #161f2e;
-    --border: #1e2d42;
-    --accent: #00e5ff;
-    --accent2: #ff4d6d;
-    --accent3: #aaff00;
-    --text: #e8f0fe;
+    --primary-color: #247066;
+    --accent-color: #187a7d;
+    --bg-light: #e5e6e8;
+    --danger-color: #de3737;
+    --text: #247066;
     --muted: #6b7fa3;
-    --online: #00e676;
+    --online: #187a7d;
+    --card-bg: #ffffff;
+    --border: #d1d5db;
   }
   * { margin:0; padding:0; box-sizing:border-box; }
   html, body { height:100%; overflow:hidden; }
   body {
-    font-family:'Syne',sans-serif;
-    background:var(--bg);
+    font-family:'Inter',sans-serif;
+    background:var(--bg-light);
     color:var(--text);
     display:flex;
     flex-direction:column;
@@ -35,45 +34,45 @@
   header {
     display:flex; align-items:center; justify-content:space-between;
     padding:10px 16px;
-    background:var(--surface);
+    background: linear-gradient(135deg, #1f7b7f 100%, #2b9a9d 100%);
     border-bottom:1px solid var(--border);
     z-index:100; gap:10px; flex-shrink:0;
   }
   .logo { display:flex; align-items:center; gap:8px; font-size:1rem; font-weight:800; white-space:nowrap; }
   .logo-dot {
-    width:10px; height:10px; background:var(--accent); border-radius:50%;
-    box-shadow:0 0 10px var(--accent); animation:pulse 2s infinite;
+    width:10px; height:10px; background:var(--accent-color); border-radius:50%;
+    box-shadow:0 0 10px var(--accent-color); animation:pulse 2s infinite;
   }
   @keyframes pulse {
-    0%,100%{box-shadow:0 0 8px var(--accent);}
-    50%{box-shadow:0 0 20px var(--accent),0 0 40px var(--accent);}
+    0%,100%{box-shadow:0 0 8px var(--accent-color);}
+    50%{box-shadow:0 0 20px var(--accent-color),0 0 40px var(--accent-color);}
   }
   .room-info {
     display:flex; align-items:center; gap:8px;
-    background:var(--card); border:1px solid var(--border);
+    background:var(--card-bg); border:1px solid var(--border);
     border-radius:8px; padding:5px 12px; flex:1; max-width:280px;
-    font-family:'Space Mono',monospace; font-size:0.72rem; overflow:hidden;
+    font-family:'Inter',monospace; font-size:0.72rem; overflow:hidden;
   }
   .room-label { color:var(--muted); white-space:nowrap; }
   .room-id {
-    color:var(--accent); font-weight:700; overflow:hidden;
+    color:var(--accent-color); font-weight:700; overflow:hidden;
     text-overflow:ellipsis; white-space:nowrap;
     cursor:pointer; letter-spacing:2px;
   }
   .share-btn {
-    background:var(--accent); color:var(--bg); border:none; border-radius:8px;
-    padding:8px 14px; font-family:'Syne',sans-serif; font-weight:700;
+    background:var(--accent-color); color:var(--bg-light); border:none; border-radius:8px;
+    padding:8px 14px; font-family:'Inter',sans-serif; font-weight:700;
     font-size:0.78rem; cursor:pointer; display:flex; align-items:center;
     gap:6px; white-space:nowrap; transition:all .2s; flex-shrink:0;
   }
-  .share-btn:hover { background:#33eaff; transform:translateY(-1px); }
+  .share-btn:hover { background:#2b9a9d; transform:translateY(-1px); }
 
   /* LAYOUT */
   .main { display:flex; flex:1; overflow:hidden; }
 
   /* SIDEBAR */
   .sidebar {
-    width:240px; background:var(--surface);
+    width:240px; background:var(--card-bg);
     border-right:1px solid var(--border);
     display:flex; flex-direction:column; overflow:hidden; flex-shrink:0;
   }
@@ -87,10 +86,10 @@
     display:flex; align-items:center; gap:10px;
     padding:9px 10px; border-radius:10px; margin-bottom:4px;
     cursor:pointer; transition:all .2s;
-    border:1px solid transparent;
+    border:1px solid var(--border);
   }
-  .member-card:hover { background:var(--card); border-color:var(--border); }
-  .member-card.me { border-left:3px solid var(--accent3); }
+  .member-card:hover { background:#f0f0f0; border-color:var(--accent-color); }
+  .member-card.me { border-left:3px solid var(--accent-color); }
   .avatar {
     width:36px; height:36px; border-radius:50%;
     display:flex; align-items:center; justify-content:center;
@@ -105,16 +104,16 @@
   .status-dot.offline { background:var(--muted); }
   .member-info { flex:1; overflow:hidden; }
   .member-name { font-size:0.82rem; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .member-coords { font-family:'Space Mono',monospace; font-size:0.58rem; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px; }
+  .member-coords { font-family:'Inter',monospace; font-size:0.58rem; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px; }
   .icon-btn {
     background:none; border:1px solid var(--border); color:var(--muted);
     width:26px; height:26px; border-radius:6px; cursor:pointer;
     font-size:0.65rem; display:flex; align-items:center; justify-content:center;
     transition:all .2s; flex-shrink:0;
   }
-  .icon-btn:hover { border-color:var(--accent); color:var(--accent); }
+  .icon-btn:hover { border-color:var(--accent-color); color:var(--accent-color); }
   .my-status {
-    padding:10px 14px; border-top:1px solid var(--border); background:var(--card);
+    padding:10px 14px; border-top:1px solid var(--border); background:var(--card-bg);
   }
   .my-status-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:7px; }
   .status-label { font-size:0.67rem; color:var(--muted); letter-spacing:1px; text-transform:uppercase; font-weight:700; }
@@ -125,7 +124,12 @@
     content:''; position:absolute; left:3px; top:3px;
     width:16px; height:16px; border-radius:50%; background:var(--muted); transition:.3s;
   }
-  .sharing-toggle input:checked + .toggle-track { background:var(--accent); }
+  .toggle-track { position:absolute; inset:0; background:var(--border); border-radius:22px; transition:.3s; }
+  .toggle-track::after {
+    content:''; position:absolute; left:3px; top:3px;
+    width:16px; height:16px; border-radius:50%; background:var(--muted); transition:.3s;
+  }
+  .sharing-toggle input:checked + .toggle-track { background:var(--accent-color); }
   .sharing-toggle input:checked + .toggle-track::after { background:var(--bg); transform:translateX(18px); }
   .accuracy-bar { height:3px; background:var(--border); border-radius:3px; overflow:hidden; }
   .accuracy-fill {
@@ -135,22 +139,22 @@
   }
 
   /* MAP */
-  #map { flex:1; background:#0d1526; }
-  .leaflet-container { background:#0d1526; }
+  #map { flex:1; background:#f0f0f0; }
+  .leaflet-container { background:#f0f0f0; }
 
   /* BOTTOM BAR */
   .bottom-bar {
     display:flex; gap:8px; padding:8px 14px;
-    background:var(--surface); border-top:1px solid var(--border);
+    background:var(--card-bg); border-top:1px solid var(--border);
     overflow-x:auto; flex-shrink:0; min-height:44px; align-items:center;
   }
   .dist-chip {
     display:flex; align-items:center; gap:6px;
-    background:var(--card); border:1px solid var(--border);
+    background:var(--card-bg); border:1px solid var(--border);
     border-radius:20px; padding:5px 12px; font-size:0.7rem;
     white-space:nowrap; transition:border-color .2s; cursor:pointer;
   }
-  .dist-chip:hover { border-color:var(--accent); }
+  .dist-chip:hover { border-color:var(--accent-color); }
   .dist-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
   .dist-label { color:var(--muted); }
   .dist-value { font-family:'Space Mono',monospace; font-weight:700; color:var(--text); }
@@ -158,69 +162,69 @@
   /* OVERLAYS */
   .overlay {
     display:none; position:fixed; inset:0;
-    background:rgba(0,0,0,0.75); backdrop-filter:blur(6px);
+    background:rgba(0,0,0,0.5); backdrop-filter:blur(6px);
     z-index:999; align-items:center; justify-content:center;
   }
   .overlay.show { display:flex; }
   .modal {
-    background:var(--surface); border:1px solid var(--border);
+    background:var(--card-bg); border:1px solid var(--border);
     border-radius:16px; padding:28px 24px; max-width:400px; width:92%;
   }
   .modal-title { font-size:1.35rem; font-weight:800; margin-bottom:5px; }
-  .modal-title span { color:var(--accent); }
+  .modal-title span { color:var(--accent-color); }
   .modal-sub { font-size:0.82rem; color:var(--muted); margin-bottom:20px; line-height:1.5; }
   .input-group { margin-bottom:14px; }
   .input-label { font-size:0.67rem; color:var(--muted); letter-spacing:2px; text-transform:uppercase; font-weight:700; margin-bottom:5px; display:block; }
   .text-input {
-    width:100%; background:var(--card); border:1px solid var(--border);
+    width:100%; background:var(--card-bg); border:1px solid var(--border);
     border-radius:8px; padding:9px 12px; color:var(--text);
-    font-family:'Syne',sans-serif; font-size:0.88rem; outline:none; transition:border-color .2s;
+    font-family:'Inter',sans-serif; font-size:0.88rem; outline:none; transition:border-color .2s;
   }
-  .text-input:focus { border-color:var(--accent); }
+  .text-input:focus { border-color:var(--accent-color); }
   .text-input::placeholder { color:var(--muted); }
   .emoji-row { display:flex; gap:7px; flex-wrap:wrap; margin-bottom:18px; }
   .emoji-opt {
     width:38px; height:38px; border-radius:50%;
-    border:2px solid var(--border); background:var(--card);
+    border:2px solid var(--border); background:var(--card-bg);
     font-size:1.15rem; cursor:pointer;
     display:flex; align-items:center; justify-content:center;
     transition:all .2s;
   }
   .emoji-opt:hover,.emoji-opt.selected {
-    border-color:var(--accent); background:rgba(0,229,255,.1); transform:scale(1.1);
+    border-color:var(--accent-color); background:rgba(24, 122, 125, 0.1); transform:scale(1.1);
   }
   .tabs { display:flex; gap:8px; margin-bottom:18px; }
   .tab {
     flex:1; padding:9px; border-radius:8px; border:1px solid var(--border);
-    background:var(--card); color:var(--muted);
-    font-family:'Syne',sans-serif; font-weight:600; font-size:0.82rem;
+    background:var(--card-bg); color:var(--muted);
+    font-family:'Inter',sans-serif; font-weight:600; font-size:0.82rem;
     cursor:pointer; text-align:center; transition:all .2s;
   }
-  .tab.active { background:var(--accent); color:var(--bg); border-color:var(--accent); }
+  .tab.active { background:var(--accent-color); color:var(--bg-light); border-color:var(--accent-color); }
   .room-id-display {
-    font-family:'Space Mono',monospace; font-size:1.5rem; font-weight:700;
-    color:var(--accent); letter-spacing:8px; text-align:center;
-    background:var(--card); border:1px dashed var(--accent);
+    font-family:'Inter',monospace; font-size:1.5rem; font-weight:700;
+    color:var(--accent-color); letter-spacing:8px; text-align:center;
+    background:var(--card-bg); border:1px dashed var(--accent-color);
     border-radius:8px; padding:14px; margin-bottom:10px;
     cursor:pointer; transition:background .2s;
   }
-  .room-id-display:hover { background:rgba(0,229,255,.05); }
+  .room-id-display:hover { background:rgba(24, 122, 125, 0.05); }
   .copy-hint { text-align:center; font-size:0.7rem; color:var(--muted); margin-bottom:18px; }
   .primary-btn {
-    width:100%; padding:12px; background:var(--accent); color:var(--bg);
-    border:none; border-radius:10px; font-family:'Syne',sans-serif;
+    width:100%; padding:12px; background:var(--accent-color); color:var(--bg-light);
+    border:none; border-radius:10px; font-family:'Inter',sans-serif;
     font-weight:800; font-size:0.95rem; cursor:pointer;
     transition:all .2s; letter-spacing:.5px;
   }
-  .primary-btn:hover { background:#33eaff; transform:translateY(-2px); }
+  .primary-btn:hover { background:#2b9a9d; transform:translateY(-2px); }
   .primary-btn:disabled { background:var(--muted); cursor:not-allowed; transform:none; opacity:.6; }
   .secondary-btn {
-    width:100%; padding:11px; background:var(--card); color:var(--accent);
-    border:1px solid var(--accent); border-radius:10px;
-    font-family:'Syne',sans-serif; font-weight:700; font-size:0.9rem;
+    width:100%; padding:11px; background:var(--card-bg); color:var(--accent-color);
+    border:1px solid var(--accent-color); border-radius:10px;
+    font-family:'Inter',sans-serif; font-weight:700; font-size:0.9rem;
     cursor:pointer; transition:all .2s; margin-top:8px;
   }
-  .secondary-btn:hover { background:rgba(0,229,255,.08); }
+  .secondary-btn:hover { background:rgba(24, 122, 125, 0.08); }
   .or-divider {
     text-align:center; font-size:0.72rem; color:var(--muted); margin:12px 0;
     position:relative;
@@ -240,7 +244,7 @@
   .toast {
     position:fixed; bottom:70px; left:50%;
     transform:translateX(-50%) translateY(20px);
-    background:var(--card); border:1px solid var(--accent);
+    background:var(--card-bg); border:1px solid var(--accent-color);
     color:var(--text); padding:9px 18px; border-radius:20px;
     font-size:0.8rem; font-weight:600; opacity:0;
     transition:all .3s; z-index:9999; white-space:nowrap; pointer-events:none;
@@ -249,9 +253,23 @@
   ::-webkit-scrollbar { width:4px; }
   ::-webkit-scrollbar-track { background:transparent; }
   ::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
+  @media(max-width:768px) {
+    .sidebar { width:200px; }
+    .main { flex-direction:column; }
+    .sidebar { width:100%; height:auto; max-height:40vh; }
+    #map { height:60vh; }
+    header { padding:8px 12px; }
+    .room-info { max-width:200px; }
+    .share-btn { padding:6px 10px; font-size:0.7rem; }
+  }
   @media(max-width:480px) {
-    .sidebar { width:190px; }
+    .sidebar { width:100%; max-height:30vh; }
+    #map { height:70vh; }
     .logo-text { display:none; }
+    .modal { width:95%; padding:20px 16px; }
+    .modal-title { font-size:1.2rem; }
+    .bottom-bar { padding:6px 10px; }
+    .dist-chip { padding:4px 8px; font-size:0.65rem; }
   }
 </style>
 </head>
@@ -262,11 +280,7 @@
   <div class="modal">
     <div class="modal-title">Lokasi<span>Bareng</span> 📍</div>
     <p class="modal-sub">Bagikan lokasi GPS secara real-time dengan teman-teman dalam satu sesi.</p>
-    <div class="tabs">
-      <div class="tab active" id="tabCreate" onclick="switchTab('create')">Buat Room</div>
-      <div class="tab" id="tabJoin"   onclick="switchTab('join')">Gabung Room</div>
-    </div>
-    <div id="createSection">
+    <div id="setupSection">
       <div class="input-group">
         <label class="input-label">Nama Kamu</label>
         <input type="text" class="text-input" id="nameInput" placeholder="contoh: Budi, Sinta..." maxlength="20">
@@ -275,29 +289,12 @@
         <label class="input-label">Pilih Ikon</label>
         <div class="emoji-row" id="emojiRow"></div>
       </div>
-      <button class="primary-btn" onclick="createRoom()">🚀 Buat Room Baru</button>
-    </div>
-    <div id="joinSection" style="display:none">
-      <div class="input-group">
-        <label class="input-label">Nama Kamu</label>
-        <input type="text" class="text-input" id="nameInputJoin" placeholder="contoh: Budi, Sinta..." maxlength="20">
-      </div>
-      <div class="input-group">
-        <label class="input-label">Kode Room</label>
-        <input type="text" class="text-input" id="roomCodeInput" placeholder="6 digit kode room" maxlength="6"
-          style="font-family:'Space Mono',monospace;letter-spacing:4px;text-transform:uppercase"
-          oninput="this.value=this.value.toUpperCase()">
-      </div>
-      <div class="input-group">
-        <label class="input-label">Pilih Ikon</label>
-        <div class="emoji-row" id="emojiRowJoin"></div>
-      </div>
-      <button class="primary-btn" onclick="joinRoom()">🔗 Gabung Room</button>
+      <button class="primary-btn" onclick="startTracking()">📍 Mulai Bagikan Lokasi</button>
     </div>
     <div id="loadingSection" style="display:none">
       <div class="loader-wrap">
         <div class="spinner"></div>
-        <span style="color:var(--muted);font-size:0.85rem" id="loadingText">Menghubungkan...</span>
+        <span style="color:var(--muted);font-size:0.85rem" id="loadingText">Memulai...</span>
       </div>
     </div>
   </div>
@@ -375,9 +372,10 @@ const firebaseConfig = {
 const db = getDatabase(initializeApp(firebaseConfig));
 
 // ─── Constants ────────────────────────────────────────────────
-const COLORS   = ['#00e5ff','#ff4d6d','#aaff00','#ff9f00','#b388ff','#69ffb4','#ff6b9d','#00b0ff'];
+const COLORS   = ['#247066','#187a7d','#2b9a9d','#1f7b7f','#0f4c4a','#3da49d','#5bb5b0','#7fc6c1'];
 const EMOJIS   = ['🧑','👩','🧔','👦','👧','🧑‍💻','🧑‍🎤','🧑‍🚀','🦊','🐱'];
 const MAX_TRAIL = 40;
+const FIXED_ROOM = 'TRIPIN';
 
 // ─── State ────────────────────────────────────────────────────
 let myId = null, myName = null, myEmoji = '🧑', myColor = COLORS[0];
@@ -390,13 +388,32 @@ const markers  = {};
 const trails   = {};
 const trailPts = {};
 
+// ─── LocalStorage Helpers ─────────────────────────────────────
+function saveUserData() {
+  localStorage.setItem('lokasi_name', myName);
+  localStorage.setItem('lokasi_emoji', myEmoji);
+}
+
+function loadUserData() {
+  const savedName = localStorage.getItem('lokasi_name');
+  const savedEmoji = localStorage.getItem('lokasi_emoji');
+  if (savedName) {
+    myName = savedName;
+    document.getElementById('nameInput').value = savedName;
+  }
+  if (savedEmoji) {
+    myEmoji = savedEmoji;
+  }
+}
+
 // ─── Emoji picker ─────────────────────────────────────────────
 function initEmoji(rowId) {
   const row = document.getElementById(rowId);
   row.innerHTML = '';
   EMOJIS.forEach((e, i) => {
     const d = document.createElement('div');
-    d.className = 'emoji-opt' + (i === 0 ? ' selected' : '');
+    const isSelected = (savedEmoji && e === savedEmoji) || (i === 0 && !savedEmoji);
+    d.className = 'emoji-opt' + (isSelected ? ' selected' : '');
     d.textContent = e;
     d.onclick = () => {
       row.querySelectorAll('.emoji-opt').forEach(x => x.classList.remove('selected'));
@@ -406,27 +423,15 @@ function initEmoji(rowId) {
     row.appendChild(d);
   });
 }
+
+const savedEmoji = localStorage.getItem('lokasi_emoji');
 initEmoji('emojiRow');
-initEmoji('emojiRowJoin');
 
-// ─── Tab switch ───────────────────────────────────────────────
-window.switchTab = t => {
-  document.getElementById('tabCreate').classList.toggle('active', t === 'create');
-  document.getElementById('tabJoin').classList.toggle('active',   t === 'join');
-  document.getElementById('createSection').style.display = t === 'create' ? '' : 'none';
-  document.getElementById('joinSection').style.display   = t === 'join'   ? '' : 'none';
-};
-
-// ─── Auto-fill room from URL ──────────────────────────────────
-const urlRoom = new URLSearchParams(location.search).get('room');
-if (urlRoom) {
-  window.switchTab('join');
-  document.getElementById('roomCodeInput').value = urlRoom.toUpperCase();
-}
+// ─── Load saved data on page load ─────────────────────────────
+loadUserData();
 
 // ─── Helpers ──────────────────────────────────────────────────
-const genId   = () => Math.random().toString(36).slice(2, 10);
-const genRoom = () => Math.random().toString(36).slice(2, 8).toUpperCase();
+const genId = () => Math.random().toString(36).slice(2, 10);
 
 let toastTimer;
 function showToast(msg) {
@@ -437,32 +442,19 @@ function showToast(msg) {
   toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
 }
 
-function showLoading(msg) {
-  ['createSection','joinSection'].forEach(id =>
-    document.getElementById(id).style.display = 'none');
-  document.getElementById('loadingSection').style.display = '';
-  document.getElementById('loadingText').textContent = msg;
-}
-
-// ─── Create / Join ────────────────────────────────────────────
-window.createRoom = () => {
+// ─── Start Tracking ───────────────────────────────────────────
+window.startTracking = () => {
   const name = document.getElementById('nameInput').value.trim();
   if (!name) { showToast('⚠️ Masukkan nama kamu dulu!'); return; }
-  myName = name; roomId = genRoom(); myId = genId();
+  myName = name;
+  myId = genId();
+  roomId = FIXED_ROOM;
   myColor = COLORS[colorIdx++ % COLORS.length];
-  showLoading('Membuat room...');
-  startSession();
-};
-
-window.joinRoom = () => {
-  const name = document.getElementById('nameInputJoin').value.trim();
-  const code = document.getElementById('roomCodeInput').value.trim().toUpperCase();
-  if (!name)             { showToast('⚠️ Masukkan nama kamu dulu!'); return; }
-  if (code.length !== 6) { showToast('⚠️ Kode room harus 6 karakter!'); return; }
-  myName = name; roomId = code; myId = genId();
-  myColor = COLORS[colorIdx++ % COLORS.length];
-  showLoading('Bergabung ke room...');
-  startSession();
+  saveUserData();
+  document.getElementById('setupSection').style.display = 'none';
+  document.getElementById('loadingSection').style.display = '';
+  document.getElementById('loadingText').textContent = 'Bergabung dengan teman...';
+  setTimeout(() => startSession(), 800);
 };
 
 // ─── Session ──────────────────────────────────────────────────
@@ -596,7 +588,7 @@ window.toggleSharing = on => {
 function initMap() {
   map = L.map('map', { zoomControl: true, attributionControl: false })
          .setView([-6.2, 106.8], 5);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
     { maxZoom: 19 }).addTo(map);
   mapReady = true;
 }
@@ -725,9 +717,27 @@ window.copyLink = () => {
 
 // ─── Cleanup ──────────────────────────────────────────────────
 window.addEventListener('beforeunload', () => {
+  saveUserData();
   if (myId && roomId) remove(ref(db, `rooms/${roomId}/members/${myId}`));
   if (watchId) navigator.geolocation.clearWatch(watchId);
 });
+
+// ─── Auto-fill room from URL ──────────────────────────────────
+const urlRoom = new URLSearchParams(location.search).get('room');
+if (urlRoom) {
+  roomId = FIXED_ROOM;
+  const savedName = localStorage.getItem('lokasi_name');
+  if (savedName) {
+    myName = savedName;
+    myEmoji = localStorage.getItem('lokasi_emoji') || '🧑';
+    myId = genId();
+    myColor = COLORS[colorIdx++ % COLORS.length];
+    document.getElementById('setupSection').style.display = 'none';
+    document.getElementById('loadingSection').style.display = '';
+    document.getElementById('loadingText').textContent = 'Bergabung dengan teman...';
+    setTimeout(() => startSession(), 800);
+  }
+}
 </script>
 </body>
 </html>
