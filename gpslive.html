@@ -278,7 +278,7 @@
   @media(max-width:480px) {
     .sidebar { width:100%; max-height:30vh; }
     #map { height:70vh; }
-    .logo-text { display:none; color: (var(--border));}
+    .logo-text { display:flex; color: (var(--border));}
     .modal { width:95%; padding:20px 16px; }
     .modal-title { font-size:1.2rem; }
     .bottom-bar { padding:6px 10px; }
@@ -338,9 +338,8 @@
 <header>
   <div class="logo">
     <div class="logo-dot"></div>
-    <span class="logo-text">Trip Planner</span>
   </div>
-  <div style="display:flex; gap:8px; align-items:center; flex:1; justify-content:flex-end">
+  <div style="display:flex; gap:8px; align-items:center; flex:1; justify-content:space-between">
     <button class="share-btn" id="shareBtn" onclick="openShare()" style="display:none">🔗 Undang Teman</button>
     <button class="logout-btn" id="logoutBtn" onclick="handleLogout()" style="display:none" title="Logout">Ganti Nama</button>
   </div>
@@ -363,7 +362,7 @@
           <div class="toggle-track"></div>
         </label>
       </div>
-      <div class="accuracy-bar"><div class="accuracy-fill" id="accuracyFill"></div></div>
+      
       <div style="font-size:0.62rem;color:var(--muted);margin-top:4px" id="accuracyLabel">Menunggu GPS...</div>
     </div>
   </div>
@@ -633,7 +632,7 @@ function startGPS() {
 function onGPS({ coords: { latitude: lat, longitude: lng, accuracy } }) {
   myLat = lat; myLng = lng;
   const pct = Math.max(0, Math.min(100, 100 - Math.log(accuracy) * 14));
-  document.getElementById('accuracyFill').style.width = pct + '%';
+  
   document.getElementById('accuracyLabel').textContent = `Akurasi ±${Math.round(accuracy)} m`;
   if (!sharingOn) return;
   if (members[myId]) members[myId] = { ...members[myId], lat, lng };
@@ -654,7 +653,7 @@ function simulateGPS() {
   // Demo: Jakarta area random walk
   let lat = -6.2 + (Math.random() - .5) * .02;
   let lng = 106.8 + (Math.random() - .5) * .02;
-  document.getElementById('accuracyFill').style.width = '70%';
+
   document.getElementById('accuracyLabel').textContent = 'Mode Demo (GPS tidak tersedia)';
   const tick = () => {
     if (!sharingOn) return;
@@ -805,7 +804,6 @@ function updateDistances() {
     chip.className = 'dist-chip';
     chip.onclick   = () => window.focusMember(uid);
     chip.innerHTML = `
-      <div class="dist-dot" style="background:${m.color}"></div>
       <span class="dist-label">${m.emoji} ${m.name}</span>
       <span class="dist-value">${fmtDist(d)}</span>
     `;
