@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lokasi Bareng – Real-time GPS Sharing</title>
+<title>Trip Planner – Real-time GPS Sharing</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -38,9 +38,9 @@
     border-bottom:1px solid var(--border);
     z-index:100; gap:10px; flex-shrink:0;
   }
-  .logo { display:flex; align-items:center; gap:8px; font-size:1rem; font-weight:800; white-space:nowrap; }
+  .logo { display:flex; align-items:center; gap:8px; font-size:1rem; font-weight:800; white-space:nowrap; color: var(--border);}
   .logo-dot {
-    width:10px; height:10px; background:var(--accent-color); border-radius:50%;
+    width:10px; height:10px; background:var(--border); border-radius:50%;
     box-shadow:0 0 10px var(--accent-color); animation:pulse 2s infinite;
   }
   @keyframes pulse {
@@ -66,6 +66,13 @@
     gap:6px; white-space:nowrap; transition:all .2s; flex-shrink:0;
   }
   .share-btn:hover { background:#2b9a9d; transform:translateY(-1px); }
+  .logout-btn {
+    background:var(--danger-color); color:var(--bg-light); border:none; border-radius:8px;
+    padding:8px 14px; font-family:'Inter',sans-serif; font-weight:700;
+    font-size:0.78rem; cursor:pointer; display:flex; align-items:center;
+    gap:6px; white-space:nowrap; transition:all .2s; flex-shrink:0;
+  }
+  .logout-btn:hover { background:#c62626; transform:translateY(-1px); }
 
   /* LAYOUT */
   .main { display:flex; flex:1; overflow:hidden; }
@@ -124,7 +131,7 @@
   .my-status-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:7px; }
   .status-label { font-size:0.67rem; color:var(--muted); letter-spacing:1px; text-transform:uppercase; font-weight:700; }
   .sharing-toggle { position:relative; width:40px; height:22px; cursor:pointer; }
-  .sharing-toggle input { opacity:0; width:0; height:0; }
+  .sharing-toggle input { opacity:50; width:0; height:0; }
   .toggle-track { position:absolute; inset:0; background:var(--border); border-radius:22px; transition:.3s; }
   .toggle-track::after {
     content:''; position:absolute; left:3px; top:3px;
@@ -271,7 +278,7 @@
   @media(max-width:480px) {
     .sidebar { width:100%; max-height:30vh; }
     #map { height:70vh; }
-    .logo-text { display:none; }
+    .logo-text { display:none; color: (var(--border));}
     .modal { width:95%; padding:20px 16px; }
     .modal-title { font-size:1.2rem; }
     .bottom-bar { padding:6px 10px; }
@@ -284,7 +291,7 @@
 <!-- JOIN MODAL -->
 <div class="overlay show" id="joinOverlay">
   <div class="modal">
-    <div class="modal-title">Lokasi<span>Bareng</span> 📍</div>
+    <div class="modal-title"><span>Trip Planner</span> 📍</div>
     <p class="modal-sub">Bagikan lokasi GPS secara real-time dengan teman-teman dalam satu sesi.</p>
     <div id="setupSection">
       <div class="input-group">
@@ -317,17 +324,26 @@
   </div>
 </div>
 
+<!-- DUPLICATE TAB MODAL -->
+<div class="overlay" id="duplicateTabOverlay">
+  <div class="modal" style="text-align:center">
+    <div class="modal-title">⚠️ <span>Tab Duplikat</span></div>
+    <p class="modal-sub">Sesi Anda sudah terbuka di tab lain. Hanya satu tab yang dapat aktif pada waktu bersamaan.</p>
+    <button class="primary-btn" style="margin-top:20px" onclick="window.close()">Tutup Tab Ini</button>
+    <p style="font-size:0.7rem;color:var(--muted);margin-top:15px">Jika tombol tidak berhasil, silakan tutup tab ini secara manual.</p>
+  </div>
+</div>
+
 <!-- HEADER -->
 <header>
   <div class="logo">
     <div class="logo-dot"></div>
-    <span class="logo-text">LokasiBareng</span>
+    <span class="logo-text">Trip Planner</span>
   </div>
-  <div class="room-info" id="roomInfoBar" style="display:none">
-    <span class="room-label">ROOM</span>
-    <span class="room-id" id="roomIdDisplay" onclick="openShare()">------</span>
+  <div style="display:flex; gap:8px; align-items:center; flex:1; justify-content:flex-end">
+    <button class="share-btn" id="shareBtn" onclick="openShare()" style="display:none">🔗 Undang Teman</button>
+    <button class="logout-btn" id="logoutBtn" onclick="handleLogout()" style="display:none" title="Logout">Ganti Nama</button>
   </div>
-  <button class="share-btn" onclick="openShare()" id="shareHeaderBtn" style="display:none">🔗 Undang</button>
 </header>
 
 <div class="main">
@@ -385,6 +401,77 @@ const COLORS   = ['#247066','#187a7d','#2b9a9d','#1f7b7f','#0f4c4a','#3da49d','#
 const EMOJIS   = ['🧑','👩','🧔','👦','👧','🧑‍💻','🧑‍🎤','🧑‍🚀','🦊','🐱'];
 const MAX_TRAIL = 40;
 const FIXED_ROOM = 'TRIPIN';
+
+// ─── BroadcastChannel & Tab Detection ─────────────────────────
+let broadcastChannel = null;
+let isTabActive = false;
+
+function initTabDetection() {
+  try {
+    broadcastChannel = new BroadcastChannel('lokasi_bareng_tab');
+    
+    // Broadcast bahwa tab ini aktif
+    broadcastChannel.postMessage({ type: 'TAB_ACTIVE' });
+    isTabActive = true;
+    
+    // Listen untuk pesan dari tab lain
+    broadcastChannel.onmessage = (event) => {
+      if (event.data.type === 'TAB_ACTIVE') {
+        // Jika tab ini sudah aktif dan menerima signal aktif dari tab lain
+        if (isTabActive && myId) {
+          // Tab ini yang lebih lama, minta tab baru untuk keluar
+          broadcastChannel.postMessage({ type: 'CLOSE_DUPLICATE' });
+        }
+      } else if (event.data.type === 'CLOSE_DUPLICATE') {
+        // Tab lain meminta tab ini untuk tutup
+        showDuplicateTabWarning();
+      } else if (event.data.type === 'LOGOUT') {
+        // Tab lain melakukan logout, tab ini juga harus logout
+        performLogout();
+      }
+    };
+  } catch (e) {
+    console.warn('BroadcastChannel tidak tersedia');
+  }
+}
+
+function showDuplicateTabWarning() {
+  document.getElementById('duplicateTabOverlay').classList.add('show');
+}
+
+window.handleLogout = () => {
+  if (broadcastChannel) {
+    broadcastChannel.postMessage({ type: 'LOGOUT' });
+  }
+  performLogout();
+};
+
+function performLogout() {
+  // Hapus data dari localStorage
+  localStorage.removeItem('lokasi_name');
+  localStorage.removeItem('lokasi_emoji');
+  
+  // Disconnect dari Firebase jika sudah terhubung
+  if (myId && roomId) {
+    remove(ref(db, `rooms/${roomId}/members/${myId}`));
+  }
+  
+  // Clear watch GPS
+  if (watchId) {
+    navigator.geolocation.clearWatch(watchId);
+  }
+  
+  // Clear URL dari parameter room
+  const u = new URL(location);
+  u.searchParams.delete('room');
+  history.replaceState({}, '', u.toString());
+  
+  // Tampilkan pesan dan reload page
+  showToast('👋 Berhasil logout');
+  setTimeout(() => {
+    location.reload();
+  }, 1000);
+}
 
 // ─── State ────────────────────────────────────────────────────
 let myId = null, myName = null, myEmoji = '🧑', myColor = COLORS[0];
@@ -474,10 +561,9 @@ function startSession() {
   history.replaceState({}, '', u);
 
   // Header
-  document.getElementById('roomIdDisplay').textContent  = roomId;
-  document.getElementById('roomInfoBar').style.display  = 'flex';
-  document.getElementById('shareHeaderBtn').style.display = 'flex';
   document.getElementById('myStatusBar').style.display  = 'block';
+  document.getElementById('shareBtn').style.display = 'flex';
+  document.getElementById('logoutBtn').style.display = 'flex';
 
   // Map
   initMap();
@@ -744,21 +830,41 @@ window.addEventListener('beforeunload', () => {
 });
 
 // ─── Auto-fill room from URL ──────────────────────────────────
-const urlRoom = new URLSearchParams(location.search).get('room');
-if (urlRoom) {
-  roomId = FIXED_ROOM;
-  const savedName = localStorage.getItem('lokasi_name');
-  if (savedName) {
-    myName = savedName;
-    myEmoji = localStorage.getItem('lokasi_emoji') || '🧑';
-    myId = genId();
-    myColor = COLORS[colorIdx++ % COLORS.length];
-    document.getElementById('setupSection').style.display = 'none';
-    document.getElementById('loadingSection').style.display = '';
-    document.getElementById('loadingText').textContent = 'Bergabung dengan teman...';
-    setTimeout(() => startSession(), 800);
+// Init tab detection dulu
+initTabDetection();
+
+// Tunggu sebentar agar bisa menerima signal dari tab lain
+setTimeout(() => {
+  const urlRoom = new URLSearchParams(location.search).get('room');
+  if (urlRoom) {
+    roomId = FIXED_ROOM;
+    const savedName = localStorage.getItem('lokasi_name');
+    if (savedName) {
+      // Jika localStorage ada, berarti user pernah login
+      // Cek apakah ini sudah tab aktif atau tidak
+      myName = savedName;
+      myEmoji = localStorage.getItem('lokasi_emoji') || '🧑';
+      myId = genId();
+      myColor = COLORS[colorIdx++ % COLORS.length];
+      
+      // Broadcast signal bahwa tab ini akan aktif
+      if (broadcastChannel) {
+        broadcastChannel.postMessage({ type: 'TAB_ACTIVE' });
+      }
+      
+      // Tunggu respons dari tab lain
+      setTimeout(() => {
+        if (!document.getElementById('duplicateTabOverlay').classList.contains('show')) {
+          // Tidak ada tab lain, bisa lanjut
+          document.getElementById('setupSection').style.display = 'none';
+          document.getElementById('loadingSection').style.display = '';
+          document.getElementById('loadingText').textContent = 'Bergabung dengan teman...';
+          setTimeout(() => startSession(), 800);
+        }
+      }, 300);
+    }
   }
-}
+}, 100);
 </script>
 </body>
 </html>
