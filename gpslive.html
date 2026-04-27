@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LokasiBareng – Real-time GPS Sharing</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  :root {
+    --bg: #0a0e17;
+    --surface: #111827;
+    --card: #161f2e;
+    --border: #1e2d42;
+    --accent: #00e5ff;
+    --accent2: #ff4d6d;
+    --accent3: #aaff00;
+    --text: #e8f0fe;
+    --muted: #6b7fa3;
+    --online: #00e676;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { height:100%; overflow:hidden; }
+  body {
+    font-family:'Syne',sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    display:flex;
+    flex-direction:column;
+    height:100dvh;
+  }
+
+  /* HEADER */
+  header {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:10px 16px;
+    background:var(--surface);
+    border-bottom:1px solid var(--border);
+    z-index:100; gap:10px; flex-shrink:0;
+  }
+  .logo { display:flex; align-items:center; gap:8px; font-size:1rem; font-weight:800; white-space:nowrap; }
+  .logo-dot {
+    width:10px; height:10px; background:var(--accent); border-radius:50%;
+    box-shadow:0 0 10px var(--accent); animation:pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%,100%{box-shadow:0 0 8px var(--accent);}
+    50%{box-shadow:0 0 20px var(--accent),0 0 40px var(--accent);}
+  }
+  .room-info {
+    display:flex; align-items:center; gap:8px;
+    background:var(--card); border:1px solid var(--border);
+    border-radius:8px; padding:5px 12px; flex:1; max-width:280px;
+    font-family:'Space Mono',monospace; font-size:0.72rem; overflow:hidden;
+  }
+  .room-label { color:var(--muted); white-space:nowrap; }
+  .room-id {
+    color:var(--accent); font-weight:700; overflow:hidden;
+    text-overflow:ellipsis; white-space:nowrap;
+    cursor:pointer; letter-spacing:2px;
+  }
+  .share-btn {
+    background:var(--accent); color:var(--bg); border:none; border-radius:8px;
+    padding:8px 14px; font-family:'Syne',sans-serif; font-weight:700;
+    font-size:0.78rem; cursor:pointer; display:flex; align-items:center;
+    gap:6px; white-space:nowrap; transition:all .2s; flex-shrink:0;
+  }
+  .share-btn:hover { background:#33eaff; transform:translateY(-1px); }
+
+  /* LAYOUT */
+  .main { display:flex; flex:1; overflow:hidden; }
+
+  /* SIDEBAR */
+  .sidebar {
+    width:240px; background:var(--surface);
+    border-right:1px solid var(--border);
+    display:flex; flex-direction:column; overflow:hidden; flex-shrink:0;
+  }
+  .sidebar-header {
+    padding:12px 14px; border-bottom:1px solid var(--border);
+    font-size:0.67rem; font-weight:700; color:var(--muted);
+    letter-spacing:2px; text-transform:uppercase;
+  }
+  .members-list { flex:1; overflow-y:auto; padding:6px; }
+  .member-card {
+    display:flex; align-items:center; gap:10px;
+    padding:9px 10px; border-radius:10px; margin-bottom:4px;
+    cursor:pointer; transition:all .2s;
+    border:1px solid transparent;
+  }
+  .member-card:hover { background:var(--card); border-color:var(--border); }
+  .member-card.me { border-left:3px solid var(--accent3); }
+  .avatar {
+    width:36px; height:36px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:1rem; font-weight:800; flex-shrink:0; position:relative;
+  }
+  .status-dot {
+    width:9px; height:9px; border-radius:50%;
+    border:2px solid var(--surface);
+    position:absolute; bottom:0; right:0;
+  }
+  .status-dot.online { background:var(--online); box-shadow:0 0 6px var(--online); }
+  .status-dot.offline { background:var(--muted); }
+  .member-info { flex:1; overflow:hidden; }
+  .member-name { font-size:0.82rem; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .member-coords { font-family:'Space Mono',monospace; font-size:0.58rem; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px; }
+  .icon-btn {
+    background:none; border:1px solid var(--border); color:var(--muted);
+    width:26px; height:26px; border-radius:6px; cursor:pointer;
+    font-size:0.65rem; display:flex; align-items:center; justify-content:center;
+    transition:all .2s; flex-shrink:0;
+  }
+  .icon-btn:hover { border-color:var(--accent); color:var(--accent); }
+  .my-status {
+    padding:10px 14px; border-top:1px solid var(--border); background:var(--card);
+  }
+  .my-status-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:7px; }
+  .status-label { font-size:0.67rem; color:var(--muted); letter-spacing:1px; text-transform:uppercase; font-weight:700; }
+  .sharing-toggle { position:relative; width:40px; height:22px; cursor:pointer; }
+  .sharing-toggle input { opacity:0; width:0; height:0; }
+  .toggle-track { position:absolute; inset:0; background:var(--border); border-radius:22px; transition:.3s; }
+  .toggle-track::after {
+    content:''; position:absolute; left:3px; top:3px;
+    width:16px; height:16px; border-radius:50%; background:var(--muted); transition:.3s;
+  }
+  .sharing-toggle input:checked + .toggle-track { background:var(--accent); }
+  .sharing-toggle input:checked + .toggle-track::after { background:var(--bg); transform:translateX(18px); }
+  .accuracy-bar { height:3px; background:var(--border); border-radius:3px; overflow:hidden; }
+  .accuracy-fill {
+    height:100%;
+    background:linear-gradient(90deg,var(--accent2),var(--accent3));
+    border-radius:3px; width:0%; transition:width .5s;
+  }
+
+  /* MAP */
+  #map { flex:1; background:#0d1526; }
+  .leaflet-container { background:#0d1526; }
+
+  /* BOTTOM BAR */
+  .bottom-bar {
+    display:flex; gap:8px; padding:8px 14px;
+    background:var(--surface); border-top:1px solid var(--border);
+    overflow-x:auto; flex-shrink:0; min-height:44px; align-items:center;
+  }
+  .dist-chip {
+    display:flex; align-items:center; gap:6px;
+    background:var(--card); border:1px solid var(--border);
+    border-radius:20px; padding:5px 12px; font-size:0.7rem;
+    white-space:nowrap; transition:border-color .2s; cursor:pointer;
+  }
+  .dist-chip:hover { border-color:var(--accent); }
+  .dist-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+  .dist-label { color:var(--muted); }
+  .dist-value { font-family:'Space Mono',monospace; font-weight:700; color:var(--text); }
+
+  /* OVERLAYS */
+  .overlay {
+    display:none; position:fixed; inset:0;
+    background:rgba(0,0,0,0.75); backdrop-filter:blur(6px);
+    z-index:999; align-items:center; justify-content:center;
+  }
+  .overlay.show { display:flex; }
+  .modal {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:16px; padding:28px 24px; max-width:400px; width:92%;
+  }
+  .modal-title { font-size:1.35rem; font-weight:800; margin-bottom:5px; }
+  .modal-title span { color:var(--accent); }
+  .modal-sub { font-size:0.82rem; color:var(--muted); margin-bottom:20px; line-height:1.5; }
+  .input-group { margin-bottom:14px; }
+  .input-label { font-size:0.67rem; color:var(--muted); letter-spacing:2px; text-transform:uppercase; font-weight:700; margin-bottom:5px; display:block; }
+  .text-input {
+    width:100%; background:var(--card); border:1px solid var(--border);
+    border-radius:8px; padding:9px 12px; color:var(--text);
+    font-family:'Syne',sans-serif; font-size:0.88rem; outline:none; transition:border-color .2s;
+  }
+  .text-input:focus { border-color:var(--accent); }
+  .text-input::placeholder { color:var(--muted); }
+  .emoji-row { display:flex; gap:7px; flex-wrap:wrap; margin-bottom:18px; }
+  .emoji-opt {
+    width:38px; height:38px; border-radius:50%;
+    border:2px solid var(--border); background:var(--card);
+    font-size:1.15rem; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    transition:all .2s;
+  }
+  .emoji-opt:hover,.emoji-opt.selected {
+    border-color:var(--accent); background:rgba(0,229,255,.1); transform:scale(1.1);
+  }
+  .tabs { display:flex; gap:8px; margin-bottom:18px; }
+  .tab {
+    flex:1; padding:9px; border-radius:8px; border:1px solid var(--border);
+    background:var(--card); color:var(--muted);
+    font-family:'Syne',sans-serif; font-weight:600; font-size:0.82rem;
+    cursor:pointer; text-align:center; transition:all .2s;
+  }
+  .tab.active { background:var(--accent); color:var(--bg); border-color:var(--accent); }
+  .room-id-display {
+    font-family:'Space Mono',monospace; font-size:1.5rem; font-weight:700;
+    color:var(--accent); letter-spacing:8px; text-align:center;
+    background:var(--card); border:1px dashed var(--accent);
+    border-radius:8px; padding:14px; margin-bottom:10px;
+    cursor:pointer; transition:background .2s;
+  }
+  .room-id-display:hover { background:rgba(0,229,255,.05); }
+  .copy-hint { text-align:center; font-size:0.7rem; color:var(--muted); margin-bottom:18px; }
+  .primary-btn {
+    width:100%; padding:12px; background:var(--accent); color:var(--bg);
+    border:none; border-radius:10px; font-family:'Syne',sans-serif;
+    font-weight:800; font-size:0.95rem; cursor:pointer;
+    transition:all .2s; letter-spacing:.5px;
+  }
+  .primary-btn:hover { background:#33eaff; transform:translateY(-2px); }
+  .primary-btn:disabled { background:var(--muted); cursor:not-allowed; transform:none; opacity:.6; }
+  .secondary-btn {
+    width:100%; padding:11px; background:var(--card); color:var(--accent);
+    border:1px solid var(--accent); border-radius:10px;
+    font-family:'Syne',sans-serif; font-weight:700; font-size:0.9rem;
+    cursor:pointer; transition:all .2s; margin-top:8px;
+  }
+  .secondary-btn:hover { background:rgba(0,229,255,.08); }
+  .or-divider {
+    text-align:center; font-size:0.72rem; color:var(--muted); margin:12px 0;
+    position:relative;
+  }
+  .or-divider::before,.or-divider::after {
+    content:''; position:absolute; top:50%; width:38%; height:1px; background:var(--border);
+  }
+  .or-divider::before { left:0; }
+  .or-divider::after { right:0; }
+  .loader-wrap { display:flex; flex-direction:column; align-items:center; gap:12px; padding:20px 0; }
+  .spinner {
+    width:32px; height:32px; border:3px solid var(--border);
+    border-top-color:var(--accent); border-radius:50%;
+    animation:spin .7s linear infinite;
+  }
+  @keyframes spin { to{transform:rotate(360deg)} }
+  .toast {
+    position:fixed; bottom:70px; left:50%;
+    transform:translateX(-50%) translateY(20px);
+    background:var(--card); border:1px solid var(--accent);
+    color:var(--text); padding:9px 18px; border-radius:20px;
+    font-size:0.8rem; font-weight:600; opacity:0;
+    transition:all .3s; z-index:9999; white-space:nowrap; pointer-events:none;
+  }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+  ::-webkit-scrollbar { width:4px; }
+  ::-webkit-scrollbar-track { background:transparent; }
+  ::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
+  @media(max-width:480px) {
+    .sidebar { width:190px; }
+    .logo-text { display:none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- JOIN MODAL -->
+<div class="overlay show" id="joinOverlay">
+  <div class="modal">
+    <div class="modal-title">Lokasi<span>Bareng</span> 📍</div>
+    <p class="modal-sub">Bagikan lokasi GPS secara real-time dengan teman-teman dalam satu sesi.</p>
+    <div class="tabs">
+      <div class="tab active" id="tabCreate" onclick="switchTab('create')">Buat Room</div>
+      <div class="tab" id="tabJoin"   onclick="switchTab('join')">Gabung Room</div>
+    </div>
+    <div id="createSection">
+      <div class="input-group">
+        <label class="input-label">Nama Kamu</label>
+        <input type="text" class="text-input" id="nameInput" placeholder="contoh: Budi, Sinta..." maxlength="20">
+      </div>
+      <div class="input-group">
+        <label class="input-label">Pilih Ikon</label>
+        <div class="emoji-row" id="emojiRow"></div>
+      </div>
+      <button class="primary-btn" onclick="createRoom()">🚀 Buat Room Baru</button>
+    </div>
+    <div id="joinSection" style="display:none">
+      <div class="input-group">
+        <label class="input-label">Nama Kamu</label>
+        <input type="text" class="text-input" id="nameInputJoin" placeholder="contoh: Budi, Sinta..." maxlength="20">
+      </div>
+      <div class="input-group">
+        <label class="input-label">Kode Room</label>
+        <input type="text" class="text-input" id="roomCodeInput" placeholder="6 digit kode room" maxlength="6"
+          style="font-family:'Space Mono',monospace;letter-spacing:4px;text-transform:uppercase"
+          oninput="this.value=this.value.toUpperCase()">
+      </div>
+      <div class="input-group">
+        <label class="input-label">Pilih Ikon</label>
+        <div class="emoji-row" id="emojiRowJoin"></div>
+      </div>
+      <button class="primary-btn" onclick="joinRoom()">🔗 Gabung Room</button>
+    </div>
+    <div id="loadingSection" style="display:none">
+      <div class="loader-wrap">
+        <div class="spinner"></div>
+        <span style="color:var(--muted);font-size:0.85rem" id="loadingText">Menghubungkan...</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SHARE MODAL -->
+<div class="overlay" id="shareOverlay">
+  <div class="modal">
+    <div class="modal-title">Undang <span>Teman</span> 🔗</div>
+    <p class="modal-sub">Bagikan kode ini ke teman-teman agar mereka bisa bergabung dari perangkat manapun.</p>
+    <div class="room-id-display" id="shareRoomId" onclick="copyRoomId()">------</div>
+    <div class="copy-hint">Tap kode di atas untuk menyalin</div>
+    <button class="primary-btn" onclick="copyLink()">📋 Salin Link Room</button>
+    <div class="or-divider">atau</div>
+    <button class="secondary-btn" onclick="closeShare()">Tutup</button>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">
+    <div class="logo-dot"></div>
+    <span class="logo-text">LokasiBareng</span>
+  </div>
+  <div class="room-info" id="roomInfoBar" style="display:none">
+    <span class="room-label">ROOM</span>
+    <span class="room-id" id="roomIdDisplay" onclick="openShare()">------</span>
+  </div>
+  <button class="share-btn" onclick="openShare()" id="shareHeaderBtn" style="display:none">🔗 Undang</button>
+</header>
+
+<div class="main">
+  <div class="sidebar">
+    <div class="sidebar-header">👥 Anggota (<span id="memberCount">0</span>)</div>
+    <div class="members-list" id="membersList"></div>
+    <div class="my-status" id="myStatusBar" style="display:none">
+      <div class="my-status-row">
+        <span class="status-label">Bagikan Lokasi</span>
+        <label class="sharing-toggle">
+          <input type="checkbox" id="sharingToggle" checked onchange="toggleSharing(this.checked)">
+          <div class="toggle-track"></div>
+        </label>
+      </div>
+      <div class="accuracy-bar"><div class="accuracy-fill" id="accuracyFill"></div></div>
+      <div style="font-size:0.62rem;color:var(--muted);margin-top:4px" id="accuracyLabel">Menunggu GPS...</div>
+    </div>
+  </div>
+  <div id="map"></div>
+</div>
+
+<div class="bottom-bar" id="bottomBar">
+  <span style="color:var(--muted);font-size:0.75rem">Bergabung dulu untuk melihat jarak...</span>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- FIREBASE -->
+<script type="module">
+import { initializeApp }   from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
+import {
+  getDatabase, ref, set, onValue,
+  onDisconnect, serverTimestamp, remove
+} from "https://www.gstatic.com/firebasejs/10.12.1/firebase-database.js";
+
+// ─── Firebase init ────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey:            "AIzaSyBJQIIpLbArzZjN-8kNrCn6grtuBWDKGdM",
+  authDomain:        "trip-planner-71a75.firebaseapp.com",
+  databaseURL:       "https://trip-planner-71a75-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId:         "trip-planner-71a75",
+  storageBucket:     "trip-planner-71a75.firebasestorage.app",
+  messagingSenderId: "785022107516",
+  appId:             "1:785022107516:web:14cbe0cd1d601cada36ef9"
+};
+const db = getDatabase(initializeApp(firebaseConfig));
+
+// ─── Constants ────────────────────────────────────────────────
+const COLORS   = ['#00e5ff','#ff4d6d','#aaff00','#ff9f00','#b388ff','#69ffb4','#ff6b9d','#00b0ff'];
+const EMOJIS   = ['🧑','👩','🧔','👦','👧','🧑‍💻','🧑‍🎤','🧑‍🚀','🦊','🐱'];
+const MAX_TRAIL = 40;
+
+// ─── State ────────────────────────────────────────────────────
+let myId = null, myName = null, myEmoji = '🧑', myColor = COLORS[0];
+let roomId = null, sharingOn = true, watchId = null;
+let myLat = null, myLng = null;
+let map = null, mapReady = false, firstFix = true;
+let colorIdx = 0;
+const members  = {};
+const markers  = {};
+const trails   = {};
+const trailPts = {};
+
+// ─── Emoji picker ─────────────────────────────────────────────
+function initEmoji(rowId) {
+  const row = document.getElementById(rowId);
+  row.innerHTML = '';
+  EMOJIS.forEach((e, i) => {
+    const d = document.createElement('div');
+    d.className = 'emoji-opt' + (i === 0 ? ' selected' : '');
+    d.textContent = e;
+    d.onclick = () => {
+      row.querySelectorAll('.emoji-opt').forEach(x => x.classList.remove('selected'));
+      d.classList.add('selected');
+      myEmoji = e;
+    };
+    row.appendChild(d);
+  });
+}
+initEmoji('emojiRow');
+initEmoji('emojiRowJoin');
+
+// ─── Tab switch ───────────────────────────────────────────────
+window.switchTab = t => {
+  document.getElementById('tabCreate').classList.toggle('active', t === 'create');
+  document.getElementById('tabJoin').classList.toggle('active',   t === 'join');
+  document.getElementById('createSection').style.display = t === 'create' ? '' : 'none';
+  document.getElementById('joinSection').style.display   = t === 'join'   ? '' : 'none';
+};
+
+// ─── Auto-fill room from URL ──────────────────────────────────
+const urlRoom = new URLSearchParams(location.search).get('room');
+if (urlRoom) {
+  window.switchTab('join');
+  document.getElementById('roomCodeInput').value = urlRoom.toUpperCase();
+}
+
+// ─── Helpers ──────────────────────────────────────────────────
+const genId   = () => Math.random().toString(36).slice(2, 10);
+const genRoom = () => Math.random().toString(36).slice(2, 8).toUpperCase();
+
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+function showLoading(msg) {
+  ['createSection','joinSection'].forEach(id =>
+    document.getElementById(id).style.display = 'none');
+  document.getElementById('loadingSection').style.display = '';
+  document.getElementById('loadingText').textContent = msg;
+}
+
+// ─── Create / Join ────────────────────────────────────────────
+window.createRoom = () => {
+  const name = document.getElementById('nameInput').value.trim();
+  if (!name) { showToast('⚠️ Masukkan nama kamu dulu!'); return; }
+  myName = name; roomId = genRoom(); myId = genId();
+  myColor = COLORS[colorIdx++ % COLORS.length];
+  showLoading('Membuat room...');
+  startSession();
+};
+
+window.joinRoom = () => {
+  const name = document.getElementById('nameInputJoin').value.trim();
+  const code = document.getElementById('roomCodeInput').value.trim().toUpperCase();
+  if (!name)             { showToast('⚠️ Masukkan nama kamu dulu!'); return; }
+  if (code.length !== 6) { showToast('⚠️ Kode room harus 6 karakter!'); return; }
+  myName = name; roomId = code; myId = genId();
+  myColor = COLORS[colorIdx++ % COLORS.length];
+  showLoading('Bergabung ke room...');
+  startSession();
+};
+
+// ─── Session ──────────────────────────────────────────────────
+function startSession() {
+  // Update URL so others can share the link
+  const u = new URL(location);
+  u.searchParams.set('room', roomId);
+  history.replaceState({}, '', u);
+
+  // Header
+  document.getElementById('roomIdDisplay').textContent  = roomId;
+  document.getElementById('shareRoomId').textContent    = roomId;
+  document.getElementById('roomInfoBar').style.display  = 'flex';
+  document.getElementById('shareHeaderBtn').style.display = 'flex';
+  document.getElementById('myStatusBar').style.display  = 'block';
+
+  // Map
+  initMap();
+
+  // Write own presence + auto-remove on disconnect
+  const myRef = ref(db, `rooms/${roomId}/members/${myId}`);
+  set(myRef, {
+    name: myName, emoji: myEmoji, color: myColor,
+    sharing: true, lat: null, lng: null, ts: serverTimestamp()
+  });
+  onDisconnect(myRef).remove();
+
+  // Listen to room members
+  onValue(ref(db, `rooms/${roomId}/members`), snap => {
+    const data = snap.val() || {};
+
+    // Handle leaves
+    Object.keys(members).forEach(uid => {
+      if (!data[uid] && uid !== myId) {
+        showToast(`${members[uid].emoji} ${members[uid].name} keluar`);
+        if (markers[uid]) { map.removeLayer(markers[uid]); delete markers[uid]; }
+        if (trails[uid])  { map.removeLayer(trails[uid]);  delete trails[uid];  }
+        delete members[uid]; delete trailPts[uid];
+      }
+    });
+
+    // Handle joins / updates
+    Object.entries(data).forEach(([uid, m]) => {
+      if (!members[uid] && uid !== myId) {
+        showToast(`${m.emoji} ${m.name} bergabung!`);
+        trailPts[uid] = [];
+      }
+      members[uid] = { ...m, isMe: uid === myId };
+      if (m.lat && m.lng) updateMarker(uid);
+    });
+
+    renderMembers();
+    updateDistances();
+
+    // Close modal first time
+    document.getElementById('joinOverlay').classList.remove('show');
+  });
+
+  startGPS();
+}
+
+// ─── Firebase write ───────────────────────────────────────────
+function writeLocation(lat, lng) {
+  if (!myId || !roomId) return;
+  const base = `rooms/${roomId}/members/${myId}`;
+  set(ref(db, base + '/lat'), lat);
+  set(ref(db, base + '/lng'), lng);
+  set(ref(db, base + '/ts'),  serverTimestamp());
+}
+function writeSharing(val) {
+  if (!myId || !roomId) return;
+  set(ref(db, `rooms/${roomId}/members/${myId}/sharing`), val);
+}
+
+// ─── GPS ──────────────────────────────────────────────────────
+function startGPS() {
+  if (!navigator.geolocation) { simulateGPS(); return; }
+  watchId = navigator.geolocation.watchPosition(onGPS, onGPSErr,
+    { enableHighAccuracy: true, maximumAge: 2000, timeout: 10000 });
+}
+
+function onGPS({ coords: { latitude: lat, longitude: lng, accuracy } }) {
+  myLat = lat; myLng = lng;
+  const pct = Math.max(0, Math.min(100, 100 - Math.log(accuracy) * 14));
+  document.getElementById('accuracyFill').style.width = pct + '%';
+  document.getElementById('accuracyLabel').textContent = `Akurasi ±${Math.round(accuracy)} m`;
+  if (!sharingOn) return;
+  if (members[myId]) members[myId] = { ...members[myId], lat, lng };
+  updateMarker(myId);
+  writeLocation(lat, lng);
+  updateDistances();
+  if (firstFix && mapReady) { map.setView([lat, lng], 15); firstFix = false; }
+}
+
+function onGPSErr(err) {
+  if (err.code === 1) {
+    document.getElementById('accuracyLabel').textContent = 'GPS diblokir – mode demo aktif';
+    simulateGPS();
+  }
+}
+
+function simulateGPS() {
+  // Demo: Jakarta area random walk
+  let lat = -6.2 + (Math.random() - .5) * .02;
+  let lng = 106.8 + (Math.random() - .5) * .02;
+  document.getElementById('accuracyFill').style.width = '70%';
+  document.getElementById('accuracyLabel').textContent = 'Mode Demo (GPS tidak tersedia)';
+  const tick = () => {
+    if (!sharingOn) return;
+    lat += (Math.random() - .5) * .0004;
+    lng += (Math.random() - .5) * .0004;
+    myLat = lat; myLng = lng;
+    if (members[myId]) members[myId] = { ...members[myId], lat, lng };
+    updateMarker(myId);
+    writeLocation(lat, lng);
+    updateDistances();
+    if (firstFix && mapReady) { map.setView([lat, lng], 15); firstFix = false; }
+  };
+  tick();
+  setInterval(tick, 3000);
+}
+
+// ─── Toggle sharing ───────────────────────────────────────────
+window.toggleSharing = on => {
+  sharingOn = on;
+  writeSharing(on);
+  showToast(on ? '📡 Berbagi lokasi aktif' : '🔇 Lokasi disembunyikan');
+};
+
+// ─── Map init ─────────────────────────────────────────────────
+function initMap() {
+  map = L.map('map', { zoomControl: true, attributionControl: false })
+         .setView([-6.2, 106.8], 5);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+    { maxZoom: 19 }).addTo(map);
+  mapReady = true;
+}
+
+function markerIcon(emoji, color, isMe) {
+  const sz = isMe ? 42 : 36;
+  return L.divIcon({
+    className: '',
+    html: `<div style="
+      background:${color};width:${sz}px;height:${sz}px;
+      border-radius:50% 50% 50% 0;transform:rotate(-45deg);
+      display:flex;align-items:center;justify-content:center;
+      box-shadow:0 0 ${isMe ? 16 : 8}px ${color}99;
+      border:2px solid ${isMe ? '#fff' : color};">
+        <span style="transform:rotate(45deg);font-size:${isMe ? 1.3 : 1.1}rem">${emoji}</span>
+      </div>`,
+    iconSize: [sz, sz], iconAnchor: [sz/2, sz], popupAnchor: [0, -sz]
+  });
+}
+
+function updateMarker(uid) {
+  const m = members[uid];
+  if (!m || m.lat == null || !mapReady) return;
+  if (markers[uid]) {
+    markers[uid].setLatLng([m.lat, m.lng]);
+    markers[uid].setIcon(markerIcon(m.emoji, m.color, m.isMe));
+  } else {
+    markers[uid] = L.marker([m.lat, m.lng],
+      { icon: markerIcon(m.emoji, m.color, m.isMe) })
+      .addTo(map)
+      .bindPopup(`<b>${m.emoji} ${m.name}</b>${m.isMe ? ' (Saya)' : ''}`);
+  }
+  // Trail
+  if (!trailPts[uid]) trailPts[uid] = [];
+  const arr  = trailPts[uid];
+  const last = arr[arr.length - 1];
+  if (!last || last.lat !== m.lat || last.lng !== m.lng) {
+    arr.push({ lat: m.lat, lng: m.lng });
+    if (arr.length > MAX_TRAIL) arr.shift();
+  }
+  if (trails[uid]) map.removeLayer(trails[uid]);
+  if (arr.length > 1) {
+    trails[uid] = L.polyline(arr.map(p => [p.lat, p.lng]),
+      { color: m.color, weight: 2, opacity: .55, dashArray: '4 7' }).addTo(map);
+  }
+}
+
+// ─── Sidebar render ───────────────────────────────────────────
+function renderMembers() {
+  const list = document.getElementById('membersList');
+  document.getElementById('memberCount').textContent = Object.keys(members).length;
+  list.innerHTML = '';
+  Object.entries(members).forEach(([uid, m]) => {
+    const online = m.sharing && m.lat != null;
+    const coord  = m.lat ? `${m.lat.toFixed(5)}, ${m.lng.toFixed(5)}` : 'Menunggu GPS...';
+    const card   = document.createElement('div');
+    card.className = 'member-card' + (m.isMe ? ' me' : '');
+    card.onclick   = () => window.focusMember(uid);
+    card.innerHTML = `
+      <div class="avatar" style="background:${m.color}22;color:${m.color};border:1.5px solid ${m.color}">
+        ${m.emoji}
+        <div class="status-dot ${online ? 'online' : 'offline'}"></div>
+      </div>
+      <div class="member-info">
+        <div class="member-name">${m.name}${m.isMe ? ' (Saya)' : ''}</div>
+        <div class="member-coords">${coord}</div>
+      </div>
+      ${!m.isMe
+        ? `<button class="icon-btn" onclick="event.stopPropagation();focusMember('${uid}')" title="Fokus">🎯</button>`
+        : ''}
+    `;
+    list.appendChild(card);
+  });
+}
+
+// ─── Focus on map ─────────────────────────────────────────────
+window.focusMember = uid => {
+  const m = members[uid];
+  if (!m || m.lat == null) { showToast('📍 Lokasi belum tersedia'); return; }
+  map.flyTo([m.lat, m.lng], 16, { duration: 1 });
+  if (markers[uid]) markers[uid].openPopup();
+};
+
+// ─── Distance bar ─────────────────────────────────────────────
+function haversine(a, b, c, d) {
+  const R = 6371000, r = Math.PI / 180;
+  const dL = (c-a)*r, dLn = (d-b)*r;
+  const x  = Math.sin(dL/2)**2 + Math.cos(a*r)*Math.cos(c*r)*Math.sin(dLn/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1-x));
+}
+const fmtDist = m => m < 1000 ? Math.round(m)+' m' : (m/1000).toFixed(1)+' km';
+
+function updateDistances() {
+  const bar = document.getElementById('bottomBar');
+  if (myLat == null) return;
+  const others = Object.entries(members).filter(([u, m]) => u !== myId && m.lat != null);
+  if (!others.length) {
+    bar.innerHTML = '<span style="color:var(--muted);font-size:.75rem">Belum ada anggota lain di peta...</span>';
+    return;
+  }
+  bar.innerHTML = '';
+  others.forEach(([uid, m]) => {
+    const d    = haversine(myLat, myLng, m.lat, m.lng);
+    const chip = document.createElement('div');
+    chip.className = 'dist-chip';
+    chip.onclick   = () => window.focusMember(uid);
+    chip.innerHTML = `
+      <div class="dist-dot" style="background:${m.color}"></div>
+      <span class="dist-label">${m.emoji} ${m.name}</span>
+      <span class="dist-value">${fmtDist(d)}</span>
+    `;
+    bar.appendChild(chip);
+  });
+}
+
+// ─── Share modal ──────────────────────────────────────────────
+window.openShare  = () => document.getElementById('shareOverlay').classList.add('show');
+window.closeShare = () => document.getElementById('shareOverlay').classList.remove('show');
+window.copyRoomId = () =>
+  navigator.clipboard.writeText(roomId).then(() => showToast('✅ Kode disalin!'));
+window.copyLink = () => {
+  const url = `${location.origin}${location.pathname}?room=${roomId}`;
+  navigator.clipboard.writeText(url).then(() => showToast('✅ Link disalin!'));
+  window.closeShare();
+};
+
+// ─── Cleanup ──────────────────────────────────────────────────
+window.addEventListener('beforeunload', () => {
+  if (myId && roomId) remove(ref(db, `rooms/${roomId}/members/${myId}`));
+  if (watchId) navigator.geolocation.clearWatch(watchId);
+});
+</script>
+</body>
+</html>
