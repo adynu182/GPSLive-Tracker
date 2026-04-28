@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Trip Planner – Real-time GPS Sharing</title>
+<title>Family Trip – Real-time GPS Sharing</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -121,7 +121,7 @@
     position:absolute; bottom:-2px; right:-2px;
   }
   .status-dot.online { background:var(--online); box-shadow:0 0 6px var(--online); }
-  .status-dot.offline { background:var(--bg-light); }
+  .status-dot.offline { background:var(--border); }
   .member-info { display:none; }
   .member-name { font-size:0.82rem; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .member-coords { font-family:'Inter',monospace; font-size:0.58rem; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px; }
@@ -316,7 +316,7 @@
 <!-- JOIN MODAL -->
 <div class="overlay show" id="joinOverlay">
   <div class="modal">
-    <div class="modal-title"><span>Trip Planner</span> 📍</div>
+    <div class="modal-title"><span>Family Trip</span> 📍</div>
     <p class="modal-sub">Bagikan lokasi GPS secara real-time dengan teman-teman dalam satu sesi.</p>
     <div id="setupSection">
       <div class="input-group">
@@ -856,7 +856,7 @@ function updateDistances() {
 window.openShare  = () => document.getElementById('shareOverlay').classList.add('show');
 window.closeShare = () => document.getElementById('shareOverlay').classList.remove('show');
 window.copyLink = () => {
-  const url = `${location.origin}${location.pathname}?room=${roomId}`;
+  const url = `${location.origin}${location.pathname}`;
   navigator.clipboard.writeText(url).then(() => showToast('✅ Link disalin!'));
   window.closeShare();
 };
