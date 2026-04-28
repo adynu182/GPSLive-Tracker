@@ -116,12 +116,12 @@
     font-size:1rem; font-weight:800; position:relative; flex-shrink:0;
   }
   .status-dot {
-    width:8px; height:8px; border-radius:50%;
-    border:2px solid var(--card-bg);
+    width:14px; height:14px; border-radius:50%;
+    border:1px solid var(--card-bg);
     position:absolute; bottom:-2px; right:-2px;
   }
   .status-dot.online { background:var(--online); box-shadow:0 0 6px var(--online); }
-  .status-dot.offline { background:var(--muted); }
+  .status-dot.offline { background:var(--bg-light); }
   .member-info { display:none; }
   .member-name { font-size:0.82rem; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .member-coords { font-family:'Inter',monospace; font-size:0.58rem; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px; }
@@ -132,25 +132,36 @@
     transition:all .2s; flex-shrink:0;
   }
   .icon-btn:hover { border-color:var(--accent-color); color:var(--accent-color); }
+  /* FLOATING STATUS PANEL */
+  .floating-status {
+    position:absolute; bottom:20px; left:14px; z-index:500;
+    background:var(--card-bg); border:1px solid var(--border);
+    border-radius:12px; padding:12px 14px; box-shadow:0 4px 12px rgba(0,0,0,0.15);
+    display:flex; flex-direction:row; gap:16px; align-items:center; min-width:auto;
+  }
+  .status-item { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+  .status-info { display:flex; flex-direction:column; gap:2px; }
+  .accuracy-label { font-size:0.78rem; font-weight:600; color:var(--text); white-space:nowrap; }
+  .accuracy-value { font-size:0.72rem; color:var(--muted); white-space:nowrap; }
+  .sharing-toggle { position:relative; width:54px; height:28px; cursor:pointer; }
+  .sharing-toggle input { opacity:0; width:0; height:0; }
+  .toggle-track { position:absolute; inset:0; background:var(--border); border-radius:28px; transition:.3s; cursor:pointer; }
+  .toggle-track::after {
+    content:''; position:absolute; left:3px; top:3px;
+    width:22px; height:22px; border-radius:50%; background:var(--card-bg); transition:.3s; box-shadow:0 2px 4px rgba(0,0,0,0.1);
+  }
+  .sharing-toggle input:checked + .toggle-track { background:var(--online); }
+  .sharing-toggle input:checked + .toggle-track::after { transform:translateX(26px); }
+  .toggle-label { font-size:0.8rem; color:var(--muted); font-weight:600; }
+
+  /* SIDEBAR STATUS (HIDDEN ON DESKTOP, SHOWN ON MOBILE) */
   .my-status {
     padding:10px 14px; border-top:1px solid var(--border); background:var(--card-bg);
+    display:none;
   }
   .my-status-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:7px; }
   .status-label { font-size:0.67rem; color:var(--muted); letter-spacing:1px; text-transform:uppercase; font-weight:700; }
-  .sharing-toggle { position:relative; width:40px; height:22px; cursor:pointer; }
-  .sharing-toggle input { opacity:50; width:0; height:0; }
-  .toggle-track { position:absolute; inset:0; background:var(--border); border-radius:22px; transition:.3s; }
-  .toggle-track::after {
-    content:''; position:absolute; left:3px; top:3px;
-    width:16px; height:16px; border-radius:50%; background:var(--muted); transition:.3s;
-  }
-  .toggle-track { position:absolute; inset:0; background:var(--border); border-radius:22px; transition:.3s; }
-  .toggle-track::after {
-    content:''; position:absolute; left:3px; top:3px;
-    width:16px; height:16px; border-radius:50%; background:var(--muted); transition:.3s;
-  }
-  .sharing-toggle input:checked + .toggle-track { background:var(--online); }
-  .sharing-toggle input:checked + .toggle-track::after { background:var(--bg); transform:translateX(18px); }
+  
   .accuracy-bar { height:3px; background:var(--border); border-radius:3px; overflow:hidden; }
   .accuracy-fill {
     height:100%;
@@ -281,6 +292,9 @@
     header { padding:8px 12px; }
     .room-info { max-width:200px; }
     .share-btn { padding:6px 10px; font-size:0.7rem; }
+    .floating-status { bottom:14px; left:10px; padding:10px 12px; gap:12px; }
+    .accuracy-label { font-size:0.82rem; }
+    .accuracy-value { font-size:0.72rem; }
   }
   @media(max-width:480px) {
     .sidebar { width:100%; max-height:30vh; }
@@ -290,6 +304,10 @@
     .modal-title { font-size:1.2rem; }
     .bottom-bar { padding:6px 10px; }
     .dist-chip { padding:4px 8px; font-size:0.65rem; }
+    .floating-status { bottom:12px; left:8px; padding:8px 10px; gap:10px; }
+    .accuracy-label { font-size:0.78rem; }
+    .accuracy-value { font-size:0.68rem; }
+    .status-item { gap:6px; }
   }
 </style>
 </head>
@@ -303,7 +321,7 @@
     <div id="setupSection">
       <div class="input-group">
         <label class="input-label">Nama Kamu</label>
-        <input type="text" class="text-input" id="nameInput" placeholder="contoh: Budi, Sinta..." maxlength="20">
+        <input type="text" class="text-input" id="nameInput" placeholder="contoh: Budi, Sinta..." maxlength="6">
       </div>
       <div class="input-group">
         <label class="input-label">Pilih Ikon</label>
@@ -362,7 +380,6 @@
           <div class="toggle-track"></div>
         </label>
       </div>
-      
           </div>
     <div class="sidebar-header" onclick="toggleMembersList()">
       <div class="sidebar-header-content">
@@ -373,7 +390,24 @@
     <div class="members-list" id="membersList"></div>
     
   </div>
-  <div id="map"></div>
+  <div id="map" style="position:relative;">
+    <!-- Floating Status Panel -->
+    <div class="floating-status" id="floatingStatus" style="display:none">
+      <div class="status-item">
+        <div class="status-info">
+          <div class="accuracy-label">Akurasi</div>
+          <div class="accuracy-value" id="accuracyValue">Menunggu GPS...</div>
+        </div>
+      </div>
+      <div class="status-item">
+        
+        <label class="sharing-toggle">
+          <input type="checkbox" id="sharingToggleFloat" checked onchange="toggleSharing(this.checked)">
+          <div class="toggle-track"></div>
+        </label>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div class="bottom-bar" id="bottomBar">
@@ -567,9 +601,11 @@ function startSession() {
   history.replaceState({}, '', u);
 
   // Header
-  document.getElementById('myStatusBar').style.display  = 'block';
   document.getElementById('shareBtn').style.display = 'flex';
   document.getElementById('logoutBtn').style.display = 'flex';
+
+  // Show floating status panel
+  document.getElementById('floatingStatus').style.display = 'flex';
 
   // Map
   initMap();
@@ -640,7 +676,8 @@ function onGPS({ coords: { latitude: lat, longitude: lng, accuracy } }) {
   myLat = lat; myLng = lng;
   const pct = Math.max(0, Math.min(100, 100 - Math.log(accuracy) * 14));
   
-  document.getElementById('accuracyLabel').textContent = `Akurasi ±${Math.round(accuracy)} m`;
+  const accStr = `±${Math.round(accuracy)} m`;
+  document.getElementById('accuracyValue').textContent = accStr;
   if (!sharingOn) return;
   if (members[myId]) members[myId] = { ...members[myId], lat, lng };
   updateMarker(myId);
@@ -651,7 +688,7 @@ function onGPS({ coords: { latitude: lat, longitude: lng, accuracy } }) {
 
 function onGPSErr(err) {
   if (err.code === 1) {
-    document.getElementById('accuracyLabel').textContent = 'GPS diblokir – mode demo aktif';
+    document.getElementById('accuracyValue').textContent = 'GPS diblokir';
     simulateGPS();
   }
 }
@@ -661,7 +698,7 @@ function simulateGPS() {
   let lat = -6.2 + (Math.random() - .5) * .02;
   let lng = 106.8 + (Math.random() - .5) * .02;
 
-  document.getElementById('accuracyLabel').textContent = 'Mode Demo (GPS tidak tersedia)';
+  document.getElementById('accuracyValue').textContent = 'Mode Demo';
   const tick = () => {
     if (!sharingOn) return;
     lat += (Math.random() - .5) * .0004;
@@ -681,6 +718,9 @@ function simulateGPS() {
 window.toggleSharing = on => {
   sharingOn = on;
   writeSharing(on);
+  // Sync both toggles
+  document.getElementById('sharingToggle').checked = on;
+  document.getElementById('sharingToggleFloat').checked = on;
   showToast(on ? '📡 Berbagi lokasi aktif' : '🔇 Lokasi disembunyikan');
 };
 
@@ -719,7 +759,7 @@ function updateMarker(uid) {
     markers[uid] = L.marker([m.lat, m.lng],
       { icon: markerIcon(m.emoji, m.color, m.isMe) })
       .addTo(map)
-      .bindPopup(`<b>${m.emoji} ${m.name}</b>${m.isMe ? ' (Saya)' : ''}`);
+      .bindPopup(`<b>${m.emoji} ${m.name}</b>${m.isMe ? ' (Me)' : ''}`);
   }
   // Trail
   if (!trailPts[uid]) trailPts[uid] = [];
