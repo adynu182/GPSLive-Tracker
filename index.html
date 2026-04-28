@@ -305,116 +305,17 @@
         <!-- TAB 1: TIMELINE -->
         <div id="tab-timeline" class="tab-content active">
             <h5 class="fw-bold mb-3">Timeline Perjalanan</h5>
-
-            <!-- Hari 1 -->
-            <div class="card p-3">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <span class="badge bg-primary">Jumat, 1 Mei 2026</span>
-                </div>
-
-                <div class="timeline-item">
-                    <p class="fw-bold mb-0">10:00 - Berangkat Stasiun Rangkasbitung</p>
-                    <p class="small text-muted">KRL menuju Stasiun Pondok Ranji (8 Orang)</p>
-                    <span class="badge badge-toll">Tiket KRL Rp 8.000/orang</span>
-                </div>
-
-                <div class="timeline-item">
-                    <p class="fw-bold mb-0">12:30 - Penjemputan di Pondok Ranji</p>
-                    <p class="small text-muted">Dijemput Rani & Rendra. Total 10 orang, 2 Mobil.</p>
-                </div>
-
-                <div class="timeline-item">
-                    <p class="fw-bold mb-0">13:00 - Menuju Bandung</p>
-                    <p class="small text-muted">Estimasi: 2.5 - 4 Jam (Tergantung Pasteur)</p>
-                    <div class="d-flex gap-2">
-                        <span class="badge badge-toll">Tol: +Rp 150rb /mobil</span>
-                        <span class="badge badge-toll">Bbm: Isi Penuh</span>
+            <div id="timeline-container">
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
                     </div>
-                    <p><span class="badge badge-traffic">Padat di KM 47 - 66</span></p>
-                    <a href="https://maps.app.goo.gl/ywKJES5rFqwasM8LA" target="_blank"
-                        class="btn btn-sm btn-outline-primary mt-1"><i class="material-icons align-middle"
-                            style="font-size: 16px;">map</i> Buka Maps Kota Bandung</a>
-
-                </div>
-
-                <div class="timeline-item">
-                    <p class="fw-bold mb-0">17:00 - Jalan-jalan & Check-in Villa</p>
-                    <p class="small text-muted">Makan di area Kota Bandung lalu malamnya ke Villa Lembang.</p>
-                    <a href="https://maps.app.goo.gl/t1dDK6MSatB3WfwH6" target="_blank"
-                        class="btn btn-sm btn-outline-primary mt-1"><i class="material-icons align-middle"
-                            style="font-size: 16px;">hotel</i> Navigasi ke Villa</a>
-                </div>
-            </div>
-
-            <!-- Hari 2 -->
-            <div class="card p-3">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <span class="badge bg-primary">Sabtu, 2 Mei 2026</span>
-                </div>
-
-                <div class="timeline-item">
-                    <p class="fw-bold mb-0">09:00 - Wisata Terdekat & Makan Siang</p>
-                    <p class="small text-muted">Eksplor area Lembang/Bandung Utara.</p>
-                    <div class="btn btn-sm btn-outline-primary mt-1" onclick="showTab('wisata', this)"><i
-                            class="material-icons align-middle" style="font-size: 16px;">landscape</i> Lihat Tempat
-                        Wisata</div>
-                </div>
-
-                <div class="timeline-item">
-                    <p class="fw-bold mb-0">13:30 - Berangkat ke Tasikmalaya</p>
-                    <p class="small text-muted">Estimasi: 3 - 4 Jam via Jalur Gentong.</p>
-                    <div class="d-flex gap-2">
-                        <span class="badge badge-toll">Bbm: +Rp 100rb /mobil</span>
-                       </div>
-                        <p><span class="badge badge-traffic">Rawan Macet: Lingkar Nagreg</span></p>
-                    <p> </p><a href="https://www.google.com/maps?q=-7.3177507,108.2215219" target="_blank"
-                        class="btn btn-sm btn-outline-primary mt-1"><i class="material-icons align-middle"
-                            style="font-size: 16px;">home</i> Navigasi ke Tasik</a>
-                </div>
-
-                <div class="timeline-item">
-                    <p class="fw-bold mb-0">18:00 - Sampai di Rumah Tasikmalaya</p>
-                    <p class="small text-muted">Istirahat di Tasik (Jl. Burujul II No.14)</p>
-
-                </div>
-            </div>
-
-            <!-- Hari 3 -->
-            <div class="card p-3">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <span class="badge bg-primary">Minggu, 3 Mei 2026</span>
-                </div>
-
-                <div class="timeline-item">
-                    <p class="fw-bold mb-0">15:00 - Acara Akad & Resepsi</p>
-                    <p class="small text-muted">Lokasi Acara Pernikahan di Tasikmalaya</p>
-                    <a href="https://www.google.com/maps?q=-7.3054637,108.2489170" target="_blank"
-                        class="btn btn-sm btn-outline-primary mt-1"><i class="material-icons align-middle"
-                            style="font-size: 16px;">celebration</i> Navigasi Ke Venue</a>
-                </div>
-
-                <div class="timeline-item">
-                    <p class="fw-bold mb-0">21:00 - Perjalanan Pulang</p>
-                    <p class="small text-muted">Mobil 1 ke Rangkasbitung. Mobil 2 ke Depok.</p>
-                    <div class="d-flex gap-2 mt-2">
-                        <span class="badge bg-dark">Rangkas: ±5-6 Jam</span>
-                        <span class="badge bg-dark">Depok: ±4-5 Jam</span>
-                    </div>
-                    <div class="d-flex gap-2 mt-2">
-                        <span class="badge badge-toll">Tol: +Rp 180rb /mobil</span>   
-                    </div>
-                    <p> <span class="badge badge-toll">Bbm: +Rp 350rb /mobil</span></p>
-                    <a href="https://maps.app.goo.gl/vWNdWxmGCPZUg41c7" target="_blank"
-                        class="btn btn-sm btn-outline-primary mt-1"><i class="material-icons align-middle"
-                            style="font-size: 16px;">directions</i> Navigasi Ke Rangkas</a>
-                    <a href="https://maps.app.goo.gl/6wbYDfWC8beDjYB17" target="_blank"
-                        class="btn btn-sm btn-outline-primary mt-1"><i class="material-icons align-middle"
-                            style="font-size: 16px;">directions</i> Navigasi Ke Depok</a>
+                    <p class="text-muted mt-2">Memuat data timeline...</p>
                 </div>
             </div>
 
             <!-- Tombol Live GPS -->     
-<div class="text-center mt-4">
+            <div class="text-center mt-4">
                 <a href="gpslive.html" target="_blank" class="btn btn-primary btn-md px-5 py-3">
                     <i class="material-icons align-middle me-2" style="font-size: 18px;">location_pin</i>
                     Live GPS Grup
@@ -605,6 +506,85 @@
         // Load data wisata dari wisata.json
         let allWisataData = []; // Store all data untuk filter
 
+        async function loadTimelineData() {
+            try {
+                const response = await fetch('timeline.json');
+                const timelineData = await response.json();
+                displayTimeline(timelineData);
+            } catch (error) {
+                console.error('Error fetching timeline data:', error);
+                document.getElementById('timeline-container').innerHTML = '<p class="text-center text-danger">Gagal memuat data timeline.</p>';
+            }
+        }
+
+        function displayTimeline(data) {
+            const container = document.getElementById('timeline-container');
+            container.innerHTML = ''; // Bersihkan
+
+            if (!data.days || data.days.length === 0) {
+                container.innerHTML = '<p class="text-center text-muted">Tidak ada data timeline.</p>';
+                return;
+            }
+
+            data.days.forEach(day => {
+                const card = document.createElement('div');
+                card.className = 'card p-3';
+                
+                let dayHTML = `
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="badge bg-primary">${day.date}</span>
+                    </div>
+                `;
+
+                day.events.forEach(event => {
+                    let badgesHTML = '';
+                    if (event.badges && event.badges.length > 0) {
+                        badgesHTML = '<div class="d-flex gap-2 flex-wrap mt-2">';
+                        event.badges.forEach(badge => {
+                            let badgeClass = 'badge-toll';
+                            if (badge.type === 'traffic') badgeClass = 'badge-traffic';
+                            else if (badge.type === 'info') badgeClass = 'bg-dark';
+                            badgesHTML += `<span class="badge ${badgeClass}">${badge.text}</span>`;
+                        });
+                        badgesHTML += '</div>';
+                    }
+
+                    let linksHTML = '';
+                    if (event.links && event.links.length > 0) {
+                        linksHTML = '<div class="d-flex gap-2 mt-2 flex-wrap">';
+                        event.links.forEach(link => {
+                            if (link.action) {
+                                linksHTML += `
+                                    <div class="btn btn-sm btn-outline-primary" onclick="${link.action}">
+                                        <i class="material-icons align-middle" style="font-size: 16px;">${link.icon}</i> ${link.text}
+                                    </div>
+                                `;
+                            } else if (link.url) {
+                                linksHTML += `
+                                    <a href="${link.url}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                        <i class="material-icons align-middle" style="font-size: 16px;">${link.icon}</i> ${link.text}
+                                    </a>
+                                `;
+                            }
+                        });
+                        linksHTML += '</div>';
+                    }
+
+                    dayHTML += `
+                        <div class="timeline-item">
+                            <p class="fw-bold mb-0">${event.time} - ${event.title}</p>
+                            <p class="small text-muted">${event.description}</p>
+                            ${badgesHTML}
+                            ${linksHTML}
+                        </div>
+                    `;
+                });
+
+                card.innerHTML = dayHTML;
+                container.appendChild(card);
+            });
+        }
+
         async function loadWisataData() {
             try {
                 const response = await fetch('wisata.json');
@@ -722,6 +702,7 @@
         // Jalankan saat load
         window.onload = function () {
             initChecklist();
+            loadTimelineData();
             loadWisataData();
         };
     </script>
