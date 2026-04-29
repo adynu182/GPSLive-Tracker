@@ -1355,7 +1355,7 @@
         icon: L.divIcon({
           className: '',
           html: `<div style="
-        background:#6b7fa3;width:36px;height:36px;
+        background:#d7dbe0;width:36px;height:36px;
         border-radius:50% 50% 50% 0;transform:rotate(-45deg);
         display:flex;align-items:center;justify-content:center;
         box-shadow:0 0 8px rgba(107, 127, 163, 0.6);
@@ -1365,7 +1365,7 @@
           iconSize: [36, 36], iconAnchor: [18, 36], popupAnchor: [0, -36]
         })
       }).addTo(map)
-        .bindPopup(`<b>${log.emoji || '👤'} ${log.name}</b><br><small>Lokasi terakhir (Offline)</small>`)
+        .bindPopup(`<b>👤 ${log.name}</b><br><small>Lokasi terakhir (Offline)</small>`)
         .openPopup();
 
       map.flyTo([log.lat, log.lng], 16, { duration: 1 });
