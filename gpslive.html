@@ -806,7 +806,7 @@ function renderMembers() {
     card.title     = m.isMe ? 'Anda' : `Klik untuk fokus ke ${m.name}`;
     card.innerHTML = `
       <div class="avatar">${m.emoji}</div>
-      <span>${m.name}${m.isMe ? ' (Saya)' : ''}</span>
+      <span>${m.name}${m.isMe ? ' (Me)' : ''}</span>
       <div class="status-dot ${online ? 'online' : 'offline'}"></div>
     `;
     list.appendChild(card);
