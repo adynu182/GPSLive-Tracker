@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>Family Trip – Real-time GPS Sharing</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -1158,27 +1158,18 @@
 
   <!-- FIREBASE -->
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
+    import { db, fs } from "./firebase-config.js";
     import {
-      getDatabase, ref, set, onValue,
+      ref, set, onValue,
       onDisconnect, serverTimestamp, remove, get
     } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-database.js";
     import {
-      getFirestore, collection, addDoc, query, where, orderBy, limit, getDocs
+      collection, addDoc, query, where, orderBy, limit, getDocs
     } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
 
     // ─── Firebase init ────────────────────────────────────────────
-    const firebaseConfig = {
-      apiKey: "AIzaSyBJQIIpLbArzZjN-8kNrCn6grtuBWDKGdM",
-      authDomain: "trip-planner-71a75.firebaseapp.com",
-      databaseURL: "https://trip-planner-71a75-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "trip-planner-71a75",
-      storageBucket: "trip-planner-71a75.firebasestorage.app",
-      messagingSenderId: "785022107516",
-      appId: "1:785022107516:web:14cbe0cd1d601cada36ef9"
-    };
-    const db = getDatabase(initializeApp(firebaseConfig));
-    const fs = getFirestore();
+
+    // Shared Firebase configuration is loaded from firebase-config.js
 
     // ─── Constants ────────────────────────────────────────────────
     const COLORS = ['#247066', '#187a7d', '#2b9a9d', '#1f7b7f', '#0f4c4a', '#3da49d', '#5bb5b0', '#7fc6c1'];
