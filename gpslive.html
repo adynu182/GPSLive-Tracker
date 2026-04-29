@@ -1557,7 +1557,7 @@
             m.name && m.name.toLowerCase() === name.toLowerCase() && m.deviceId !== myDevId
           );
           if (isNameTaken) {
-            showToast('⚠️ Nama sudah digunakan pengguna lain yang sedang aktif!');
+            showToast('⚠️ Nama sedang aktif digunakan!');
             btn.disabled = false;
             btn.innerHTML = originalText;
             return;
