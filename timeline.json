@@ -28,7 +28,7 @@
         {
           "time": "12:30",
           "title": "Menuju Bandung",
-          "description": "Estimasi: 2.5 - 4 Jam (Tergantung Pasteur)",
+          "description": "Estimasi: 2.5 - 4 Jam (Keluar Gerbang Tol Kopo)",
           "badges": [
             {
               "type": "toll",
@@ -47,12 +47,12 @@
             {
               "icon": "map",
               "text": "Maps Ke Bandung",
-              "url": "https://maps.app.goo.gl/ywKJES5rFqwasM8LA"
+              "url": "https://maps.app.goo.gl/dPbw2Zv5hqmHWAx8A"
             },
              {
               "icon": "timeline",
               "text": "Plan",
-              "url": "https://maps.app.goo.gl/ueGDeGCbCejZg8xb8"
+              "url": "https://maps.app.goo.gl/qZfy1AdvSYmH7kWK7"
             }
           ]
         },
