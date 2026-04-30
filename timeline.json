@@ -4,7 +4,7 @@
   "days": [
     {
       "id": 1,
-      "date": "Jumat, 1 Mei 2026 (Day 1)",
+      "date": "Jumat, 1 Mei 2026",
       "events": [
         {
           "time": "10:00",
@@ -19,14 +19,14 @@
           "links": []
         },
         {
-          "time": "12:30",
+          "time": "12:00",
           "title": "Penjemputan di Pondok Ranji",
           "description": "Dijemput Rani & Rendra. Total 10 orang, 2 Mobil.",
           "badges": [],
           "links": []
         },
         {
-          "time": "13:00",
+          "time": "12:30",
           "title": "Menuju Bandung",
           "description": "Estimasi: 2.5 - 4 Jam (Tergantung Pasteur)",
           "badges": [
@@ -46,13 +46,18 @@
           "links": [
             {
               "icon": "map",
-              "text": "Buka Maps Kota Bandung",
+              "text": "Maps Ke Bandung",
               "url": "https://maps.app.goo.gl/ywKJES5rFqwasM8LA"
+            },
+             {
+              "icon": "timeline",
+              "text": "Plan",
+              "url": "https://maps.app.goo.gl/ueGDeGCbCejZg8xb8"
             }
           ]
         },
         {
-          "time": "17:00",
+          "time": "16:30",
           "title": "Jalan-jalan & Check-in Villa",
           "description": "Makan di area Kota Bandung lalu malamnya ke Villa Lembang.",
           "badges": [],
@@ -128,14 +133,14 @@
             {
               "icon": "celebration",
               "text": "Navigasi Ke Venue",
-              "url": "https://www.google.com/maps?q=-7.3054637,108.2489170"
+              "url": "https://maps.app.goo.gl/ctTj5KMmM82VeiVLA"
             }
           ]
         },
         {
           "time": "21:00",
           "title": "Perjalanan Pulang",
-          "description": "Mobil 1 ke Rangkasbitung. Mobil 2 ke Depok.",
+          "description": "Setiap 2 jam berkendara, istirahat 15-30 menit di rest area 😴. Untuk perjalanan malam, siapkan kopi & bergantian menyetir.",
           "badges": [
             {
               "type": "info",
@@ -158,7 +163,12 @@
             {
               "icon": "directions",
               "text": "Navigasi Ke Rangkas",
-              "url": "https://maps.app.goo.gl/vWNdWxmGCPZUg41c7"
+              "url": "https://maps.app.goo.gl/JokxNvwxZj2mbtXx8"
+            },
+            {
+              "icon": "timeline",
+              "text": "Plan",
+              "url": "https://maps.app.goo.gl/U9p4VnrCaMHzUxtJ9"
             },
             {
               "icon": "directions",
