@@ -288,7 +288,10 @@
 <body>
 
     <!-- Header -->
-    <div class="header-banner text-center">
+    <div class="header-banner text-center position-relative">
+        <a href="admin-timeline.html" class="text-white opacity-50 position-absolute top-0 end-0 m-3" style="text-decoration: none;">
+            <i class="material-icons" style="font-size: 20px;">settings</i>
+        </a>
         <h4 class="fw-bold mb-1">Family Trip 2026</h4>
         <p class="small mb-0 opacity-75">Rangkas - Bandung - Tasikmalaya</p>
     </div>
@@ -431,7 +434,10 @@
     </nav>
 
     <!-- Scripts -->
-    <script>
+    <script type="module">
+        import { fs } from './firebase-config.js';
+        import { collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
+
         // Fungsi Navigasi Tab
         function showTab(tabId, el) {
             // Sembunyikan semua tab
@@ -445,11 +451,12 @@
 
             // Tampilkan tab yang dipilih
             document.getElementById('tab-' + tabId).classList.add('active');
-            el.classList.add('active');
+            if (el) el.classList.add('active');
 
             // Scroll ke atas
             window.scrollTo(0, 0);
         }
+        window.showTab = showTab;
 
         // Sistem Checklist dengan LocalStorage
         const defaultChecklist = [
@@ -466,6 +473,7 @@
 
         function initChecklist() {
             const container = document.getElementById('checklist-container');
+            if (!container) return;
             let savedData = JSON.parse(localStorage.getItem('trip_checklist')) || {};
 
             defaultChecklist.forEach((item, index) => {
@@ -497,18 +505,21 @@
 
             localStorage.setItem('trip_checklist', JSON.stringify(savedData));
         }
+        window.toggleItem = toggleItem;
 
-        // Load data wisata dari wisata.json
-        let allWisataData = []; // Store all data untuk filter
-
+        // Load data timeline dari Firestore
         async function loadTimelineData() {
             try {
-                const response = await fetch('timeline.json');
-                const timelineData = await response.json();
-                displayTimeline(timelineData);
+                const q = query(collection(fs, "timeline"), orderBy("order", "asc"));
+                const querySnapshot = await getDocs(q);
+                const days = [];
+                querySnapshot.forEach((doc) => {
+                    days.push(doc.data());
+                });
+                displayTimeline({ days });
             } catch (error) {
-                console.error('Error fetching timeline data:', error);
-                document.getElementById('timeline-container').innerHTML = '<p class="text-center text-danger">Gagal memuat data timeline.</p>';
+                console.error('Error fetching timeline data from Firestore:', error);
+                document.getElementById('timeline-container').innerHTML = '<p class="text-center text-danger">Gagal memuat data timeline dari Firestore.</p>';
             }
         }
 
@@ -580,6 +591,9 @@
             });
         }
 
+        // Load data wisata dari wisata.json
+        let allWisataData = []; // Store all data untuk filter
+
         async function loadWisataData() {
             try {
                 const response = await fetch('wisata.json');
@@ -596,14 +610,17 @@
             document.querySelectorAll('.category-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
-            document.querySelector(`[data-category="${category}"]`).classList.add('active');
+            const activeBtn = document.querySelector(`[data-category="${category}"]`);
+            if (activeBtn) activeBtn.classList.add('active');
             
             // Display filtered data
             displayWisata(category);
         }
+        window.filterWisata = filterWisata;
 
         function displayWisata(category) {
             const container = document.getElementById('wisata-container');
+            if (!container) return;
             container.innerHTML = ''; // Bersihkan
 
             // Filter data berdasarkan kategori
@@ -695,11 +712,11 @@
         }
 
         // Jalankan saat load
-        window.onload = function () {
+        window.addEventListener('DOMContentLoaded', () => {
             initChecklist();
             loadTimelineData();
             loadWisataData();
-        };
+        });
     </script>
 </body>
 
