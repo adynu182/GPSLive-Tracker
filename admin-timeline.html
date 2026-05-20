@@ -14,59 +14,80 @@
         body { background-color: #f8f9fa; padding-bottom: 50px; }
         .card { border-radius: 15px; border: none; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
         .btn-primary { background-color: var(--accent-color); border-color: var(--accent-color); }
+        .btn-outline-primary { color: var(--accent-color); border-color: var(--accent-color); }
+        .btn-outline-primary:hover { background-color: var(--accent-color); color: white; }
         .text-primary { color: var(--accent-color) !important; }
-        .event-item { border-left: 3px solid var(--accent-color); padding-left: 15px; margin-bottom: 15px; position: relative; }
-        .event-actions { position: absolute; right: 0; top: 0; }
+        
+        /* Mobile adjustments */
+        @media (max-width: 576px) {
+            .container { padding-left: 10px; padding-right: 10px; }
+            .card-header { padding: 10px !important; flex-direction: column; align-items: flex-start !important; gap: 10px; }
+            .card-header .btn-group-sm { width: 100%; display: flex; }
+            .card-header .btn-group-sm .btn { flex: 1; }
+        }
+
+        .event-item { 
+            border-left: 3px solid var(--accent-color); 
+            padding-left: 15px; 
+            margin-bottom: 15px; 
+            position: relative; 
+            padding-right: 70px; /* Space for actions */
+        }
+        .event-actions { position: absolute; right: 0; top: 0; display: flex; gap: 5px; }
+        
+        .list-group-item { font-size: 0.9rem; padding: 8px 12px; }
+        .badge-item, .link-item { background: #f0f4f4; border-radius: 8px; margin-bottom: 5px; }
     </style>
 </head>
 <body>
     <nav class="navbar navbar-dark bg-dark mb-4">
         <div class="container">
-            <a class="navbar-brand" href="index.html">Trip Planner Admin</a>
-            <button class="btn btn-outline-light btn-sm" onclick="importFromJson()">Import from JSON</button>
+            <a class="navbar-brand d-flex align-items-center" href="index.html">
+                <i class="material-icons me-2">arrow_back</i> Admin Timeline
+            </a>
         </div>
     </nav>
 
     <div class="container">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="fw-bold">Manage Timeline</h2>
-            <button class="btn btn-primary" onclick="showDayModal()">
-                <i class="material-icons align-middle">add</i> Tambah Hari
+            <h2 class="fw-bold h4 mb-0">Manage Timeline</h2>
+            <button class="btn btn-primary btn-sm" onclick="showDayModal()">
+                <i class="material-icons align-middle fs-6">add</i> Hari
             </button>
         </div>
 
         <div id="timeline-admin-container">
             <div class="text-center py-5">
                 <div class="spinner-border text-primary" role="status"></div>
-                <p class="mt-2">Loading timeline...</p>
+                <p class="mt-2 text-muted">Loading timeline...</p>
             </div>
         </div>
     </div>
 
     <!-- Modal Day -->
     <div class="modal fade" id="dayModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="dayModalTitle">Tambah Hari</h5>
+                    <h5 class="modal-title fw-bold" id="dayModalTitle">Tambah Hari</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <form id="dayForm">
                         <input type="hidden" id="dayId">
                         <div class="mb-3">
-                            <label class="form-label">Tanggal (e.g. Jumat, 1 Mei 2026)</label>
-                            <input type="text" class="form-control" id="dayDate" required>
+                            <label class="form-label small fw-bold">Tanggal</label>
+                            <input type="text" class="form-control" id="dayDate" placeholder="Contoh: Jumat, 1 Mei 2026" required>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Urutan (Angka)</label>
-                            <input type="number" class="form-control" id="dayOrder" required>
+                            <label class="form-label small fw-bold">Urutan (Angka)</label>
+                            <input type="number" class="form-control" id="dayOrder" placeholder="1" required>
                         </div>
                     </form>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="button" class="btn btn-primary" onclick="saveDay()">Simpan</button>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary px-4" onclick="saveDay()">Simpan</button>
                 </div>
             </div>
         </div>
@@ -74,44 +95,59 @@
 
     <!-- Modal Event -->
     <div class="modal fade" id="eventModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
+        <div class="modal-dialog modal-lg modal-fullscreen-sm-down">
+            <div class="modal-content border-0">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="eventModalTitle">Tambah Event</h5>
+                    <h5 class="modal-title fw-bold" id="eventModalTitle">Tambah Event</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <form id="eventForm">
                         <input type="hidden" id="eventDayId">
                         <input type="hidden" id="eventIndex">
+                        
                         <div class="row">
-                            <div class="col-md-3 mb-3">
-                                <label class="form-label">Waktu</label>
+                            <div class="col-sm-4 mb-3">
+                                <label class="form-label small fw-bold">Waktu</label>
                                 <input type="text" class="form-control" id="eventTime" placeholder="10:00" required>
                             </div>
-                            <div class="col-md-9 mb-3">
-                                <label class="form-label">Judul</label>
-                                <input type="text" class="form-control" id="eventTitle" required>
+                            <div class="col-sm-8 mb-3">
+                                <label class="form-label small fw-bold">Judul Event</label>
+                                <input type="text" class="form-control" id="eventTitle" placeholder="Contoh: Berangkat" required>
                             </div>
                         </div>
+
                         <div class="mb-3">
-                            <label class="form-label">Deskripsi</label>
-                            <textarea class="form-control" id="eventDesc" rows="2"></textarea>
+                            <label class="form-label small fw-bold">Deskripsi</label>
+                            <textarea class="form-control" id="eventDesc" rows="2" placeholder="Detail kegiatan..."></textarea>
                         </div>
-                        
-                        <div class="mb-3">
-                            <label class="form-label">Badges (JSON format for now, or simple UI later)</label>
-                            <textarea class="form-control" id="eventBadges" placeholder='[{"type": "toll", "text": "Rp 8.000"}]'></textarea>
+
+                        <hr>
+
+                        <!-- Badges Section -->
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label class="form-label small fw-bold mb-0">Badges / Label</label>
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="addBadgeRow()">+ Badge</button>
+                            </div>
+                            <div id="badges-container" class="list-group list-group-flush"></div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Links (JSON format for now)</label>
-                            <textarea class="form-control" id="eventLinks" placeholder='[{"icon": "map", "text": "Maps", "url": "..."}]'></textarea>
+
+                        <hr>
+
+                        <!-- Links Section -->
+                        <div>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label class="form-label small fw-bold mb-0">Links / Tombol</label>
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="addLinkRow()">+ Link</button>
+                            </div>
+                            <div id="links-container" class="list-group list-group-flush"></div>
                         </div>
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="button" class="btn btn-primary" onclick="saveEvent()">Simpan</button>
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary px-4" onclick="saveEvent()">Simpan</button>
                 </div>
             </div>
         </div>
@@ -121,21 +157,15 @@
     <script type="module">
         import { fs } from './firebase-config.js';
         import { 
-            collection, 
-            getDocs, 
-            addDoc, 
-            updateDoc, 
-            deleteDoc, 
-            doc, 
-            query, 
-            orderBy, 
-            setDoc 
+            collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy 
         } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
 
         const dayModal = new bootstrap.Modal(document.getElementById('dayModal'));
         const eventModal = new bootstrap.Modal(document.getElementById('eventModal'));
         
         let allDays = [];
+        let currentBadges = [];
+        let currentLinks = [];
 
         async function loadTimeline() {
             const container = document.getElementById('timeline-admin-container');
@@ -148,7 +178,7 @@
                 container.innerHTML = '';
 
                 if (querySnapshot.empty) {
-                    container.innerHTML = '<div class="alert alert-info">Belum ada data. Silakan import atau tambah manual.</div>';
+                    container.innerHTML = '<div class="alert alert-info">Belum ada data. Silakan tambah manual.</div>';
                     return;
                 }
 
@@ -165,53 +195,53 @@
 
         function renderDay(day, container) {
             const card = document.createElement('div');
-            card.className = 'card';
+            card.className = 'card overflow-hidden';
             
             let eventsHtml = '';
             if (day.events && day.events.length > 0) {
                 day.events.forEach((event, index) => {
                     eventsHtml += `
-                        <div class="event-item">
+                        <div class="event-item py-2 border-bottom last-child-border-0">
                             <div class="event-actions">
-                                <button class="btn btn-sm btn-outline-secondary" onclick="editEvent('${day.id}', ${index})">
+                                <button class="btn btn-sm btn-light text-primary" onclick="editEvent('${day.id}', ${index})">
                                     <i class="material-icons fs-6">edit</i>
                                 </button>
-                                <button class="btn btn-sm btn-outline-danger" onclick="deleteEvent('${day.id}', ${index})">
+                                <button class="btn btn-sm btn-light text-danger" onclick="deleteEvent('${day.id}', ${index})">
                                     <i class="material-icons fs-6">delete</i>
                                 </button>
                             </div>
-                            <div class="fw-bold">${event.time} - ${event.title}</div>
-                            <div class="small text-muted">${event.description || ''}</div>
+                            <div class="fw-bold small">${event.time} - ${event.title}</div>
+                            <div class="text-muted" style="font-size: 0.75rem;">${event.description || ''}</div>
                         </div>
                     `;
                 });
             } else {
-                eventsHtml = '<p class="text-muted small">Belum ada event.</p>';
+                eventsHtml = '<p class="text-muted small p-2 mb-0">Belum ada event.</p>';
             }
 
             card.innerHTML = `
-                <div class="card-header d-flex justify-content-between align-items-center bg-white border-bottom-0 pt-3 px-3">
-                    <h5 class="mb-0 fw-bold text-primary">${day.date} <small class="text-muted text-normal">(Order: ${day.order})</small></h5>
-                    <div>
-                        <button class="btn btn-sm btn-outline-primary" onclick="showEventModal('${day.id}')">
+                <div class="card-header d-flex justify-content-between align-items-center bg-white border-bottom pt-3 px-3">
+                    <h6 class="mb-0 fw-bold text-primary">${day.date} <small class="text-muted fw-normal ms-1">(#${day.order})</small></h6>
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-primary" onclick="showEventModal('${day.id}')">
                             <i class="material-icons fs-6 align-middle">add</i> Event
                         </button>
-                        <button class="btn btn-sm btn-outline-secondary" onclick="editDay('${day.id}')">
+                        <button class="btn btn-outline-secondary" onclick="editDay('${day.id}')">
                             <i class="material-icons fs-6 align-middle">edit</i>
                         </button>
-                        <button class="btn btn-sm btn-outline-danger" onclick="deleteDay('${day.id}')">
+                        <button class="btn btn-outline-danger" onclick="deleteDay('${day.id}')">
                             <i class="material-icons fs-6 align-middle">delete</i>
                         </button>
                     </div>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-3">
                     ${eventsHtml}
                 </div>
             `;
             container.appendChild(card);
         }
 
-        // Global functions for buttons
+        // Global functions
         window.showDayModal = () => {
             document.getElementById('dayForm').reset();
             document.getElementById('dayId').value = '';
@@ -233,9 +263,7 @@
             const id = document.getElementById('dayId').value;
             const date = document.getElementById('dayDate').value;
             const order = parseInt(document.getElementById('dayOrder').value);
-
             if (!date || isNaN(order)) return alert('Harap isi data dengan benar');
-
             try {
                 if (id) {
                     await updateDoc(doc(fs, "timeline", id), { date, order });
@@ -255,8 +283,53 @@
             } catch (e) { console.error(e); }
         };
 
+        // Event Badge & Link Helpers
+        window.addBadgeRow = (data = { type: 'toll', text: '' }) => {
+            const container = document.getElementById('badges-container');
+            const index = container.children.length;
+            const div = document.createElement('div');
+            div.className = 'list-group-item badge-item d-flex gap-2 align-items-center border-0';
+            div.innerHTML = `
+                <select class="form-select form-select-sm w-auto badge-type">
+                    <option value="toll" ${data.type==='toll'?'selected':''}>Toll</option>
+                    <option value="traffic" ${data.type==='traffic'?'selected':''}>Traffic</option>
+                    <option value="info" ${data.type==='info'?'selected':''}>Info</option>
+                </select>
+                <input type="text" class="form-control form-control-sm badge-text" placeholder="Teks badge" value="${data.text}">
+                <button type="button" class="btn btn-sm btn-link text-danger p-0" onclick="this.parentElement.remove()">
+                    <i class="material-icons">delete</i>
+                </button>
+            `;
+            container.appendChild(div);
+        };
+
+        window.addLinkRow = (data = { icon: 'map', text: '', url: '' }) => {
+            const container = document.getElementById('links-container');
+            const div = document.createElement('div');
+            div.className = 'list-group-item link-item border-0 p-2';
+            div.innerHTML = `
+                <div class="row g-2">
+                    <div class="col-4">
+                        <input type="text" class="form-control form-control-sm link-icon" placeholder="Icon (map, hotel, etc)" value="${data.icon}">
+                    </div>
+                    <div class="col-8 d-flex gap-2">
+                        <input type="text" class="form-control form-control-sm link-text" placeholder="Teks Tombol" value="${data.text}">
+                        <button type="button" class="btn btn-sm btn-link text-danger p-0" onclick="this.parentElement.parentElement.parentElement.remove()">
+                            <i class="material-icons">delete</i>
+                        </button>
+                    </div>
+                    <div class="col-12 mt-1">
+                        <input type="text" class="form-control form-control-sm link-url" placeholder="URL (https://...)" value="${data.url || ''}">
+                    </div>
+                </div>
+            `;
+            container.appendChild(div);
+        };
+
         window.showEventModal = (dayId, index = null) => {
             document.getElementById('eventForm').reset();
+            document.getElementById('badges-container').innerHTML = '';
+            document.getElementById('links-container').innerHTML = '';
             document.getElementById('eventDayId').value = dayId;
             document.getElementById('eventIndex').value = index !== null ? index : '';
             document.getElementById('eventModalTitle').innerText = index !== null ? 'Edit Event' : 'Tambah Event';
@@ -266,17 +339,15 @@
                 const event = day.events[index];
                 document.getElementById('eventTime').value = event.time;
                 document.getElementById('eventTitle').value = event.title;
-                document.getElementById('eventDesc').value = event.description;
-                document.getElementById('eventBadges').value = JSON.stringify(event.badges || []);
-                document.getElementById('eventLinks').value = JSON.stringify(event.links || []);
+                document.getElementById('eventDesc').value = event.description || '';
+                if (event.badges) event.badges.forEach(b => window.addBadgeRow(b));
+                if (event.links) event.links.forEach(l => window.addLinkRow(l));
             }
             
             eventModal.show();
         };
 
-        window.editEvent = (dayId, index) => {
-            window.showEventModal(dayId, index);
-        };
+        window.editEvent = (dayId, index) => { window.showEventModal(dayId, index); };
 
         window.saveEvent = async () => {
             const dayId = document.getElementById('eventDayId').value;
@@ -284,27 +355,30 @@
             const time = document.getElementById('eventTime').value;
             const title = document.getElementById('eventTitle').value;
             const description = document.getElementById('eventDesc').value;
-            let badges = [];
-            let links = [];
-
-            try {
-                badges = JSON.parse(document.getElementById('eventBadges').value || '[]');
-                links = JSON.parse(document.getElementById('eventLinks').value || '[]');
-            } catch (e) {
-                return alert('Format JSON Badges atau Links salah');
-            }
 
             if (!time || !title) return alert('Harap isi waktu dan judul');
+
+            // Collect Badges
+            const badges = [];
+            document.querySelectorAll('.badge-item').forEach(item => {
+                const text = item.querySelector('.badge-text').value;
+                if (text) badges.push({ type: item.querySelector('.badge-type').value, text });
+            });
+
+            // Collect Links
+            const links = [];
+            document.querySelectorAll('.link-item').forEach(item => {
+                const text = item.querySelector('.link-text').value;
+                const url = item.querySelector('.link-url').value;
+                if (text) links.push({ icon: item.querySelector('.link-icon').value, text, url });
+            });
 
             const day = allDays.find(d => d.id === dayId);
             const events = [...day.events];
             const eventData = { time, title, description, badges, links };
 
-            if (index !== '') {
-                events[parseInt(index)] = eventData;
-            } else {
-                events.push(eventData);
-            }
+            if (index !== '') events[parseInt(index)] = eventData;
+            else events.push(eventData);
 
             try {
                 await updateDoc(doc(fs, "timeline", dayId), { events });
@@ -324,41 +398,6 @@
             } catch (e) { console.error(e); }
         };
 
-        window.importFromJson = async () => {
-            if (!confirm('Import data dari timeline.json ke Firestore? Data yang ada mungkin duplikat.')) return;
-            try {
-                console.log("Memulai import dari timeline.json...");
-                const response = await fetch('timeline.json');
-                
-                if (!response.ok) {
-                    throw new Error(`Gagal mengambil timeline.json: ${response.status} ${response.statusText}`);
-                }
-                
-                const data = await response.json();
-                console.log("Data JSON berhasil dimuat:", data);
-
-                if (!data.days || !Array.isArray(data.days)) {
-                    throw new Error("Format JSON salah: Property 'days' tidak ditemukan atau bukan array.");
-                }
-                
-                for (let i = 0; i < data.days.length; i++) {
-                    const day = data.days[i];
-                    console.log(`Mengimport hari ke-${i+1}: ${day.date}`);
-                    await addDoc(collection(fs, "timeline"), {
-                        date: day.date,
-                        order: day.id || (i + 1),
-                        events: day.events || []
-                    });
-                }
-                alert('Import berhasil!');
-                loadTimeline();
-            } catch (e) {
-                console.error("Detail Error Import:", e);
-                alert('Gagal import data: ' + e.message);
-            }
-        };
-
-        // Initial load
         loadTimeline();
     </script>
 </body>
