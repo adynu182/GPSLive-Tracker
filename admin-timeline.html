@@ -327,22 +327,34 @@
         window.importFromJson = async () => {
             if (!confirm('Import data dari timeline.json ke Firestore? Data yang ada mungkin duplikat.')) return;
             try {
+                console.log("Memulai import dari timeline.json...");
                 const response = await fetch('timeline.json');
+                
+                if (!response.ok) {
+                    throw new Error(`Gagal mengambil timeline.json: ${response.status} ${response.statusText}`);
+                }
+                
                 const data = await response.json();
+                console.log("Data JSON berhasil dimuat:", data);
+
+                if (!data.days || !Array.isArray(data.days)) {
+                    throw new Error("Format JSON salah: Property 'days' tidak ditemukan atau bukan array.");
+                }
                 
                 for (let i = 0; i < data.days.length; i++) {
                     const day = data.days[i];
+                    console.log(`Mengimport hari ke-${i+1}: ${day.date}`);
                     await addDoc(collection(fs, "timeline"), {
                         date: day.date,
-                        order: day.id,
-                        events: day.events
+                        order: day.id || (i + 1),
+                        events: day.events || []
                     });
                 }
                 alert('Import berhasil!');
                 loadTimeline();
             } catch (e) {
-                console.error(e);
-                alert('Gagal import data');
+                console.error("Detail Error Import:", e);
+                alert('Gagal import data: ' + e.message);
             }
         };
 
