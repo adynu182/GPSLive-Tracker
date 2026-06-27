@@ -1118,6 +1118,10 @@
       if (watchId) {
         navigator.geolocation.clearWatch(watchId);
       }
+      if (simIntervalId) {
+        clearInterval(simIntervalId);
+        simIntervalId = null;
+      }
 
       // FIX: Sembunyikan room-info di header
       document.getElementById('roomInfo').style.display = 'none';
@@ -1136,7 +1140,7 @@
 
     // ─── State ────────────────────────────────────────────────────
     let myId = null, myName = null, myEmoji = '🧑', myColor = COLORS[0];
-    let roomId = null, sharingOn = true, watchId = null;
+    let roomId = null, sharingOn = true, watchId = null, simIntervalId = null;
     let myLat = null, myLng = null;
     let map = null, mapReady = false, firstFix = true;
     let colorIdx = 0;
@@ -1344,6 +1348,7 @@
 
     // ─── GPS ──────────────────────────────────────────────────────
     function startGPS() {
+      if (simIntervalId) { clearInterval(simIntervalId); simIntervalId = null; }
       if (!navigator.geolocation) { simulateGPS(); return; }
       watchId = navigator.geolocation.watchPosition(onGPS, onGPSErr,
         { enableHighAccuracy: true, maximumAge: 2000, timeout: 10000 });
@@ -1396,7 +1401,8 @@
         if (firstFix && mapReady) { map.setView([lat, lng], 15); firstFix = false; }
       };
       tick();
-      setInterval(tick, 3000);
+      if (simIntervalId) clearInterval(simIntervalId);
+      simIntervalId = setInterval(tick, 3000);
     }
 
     // ─── Toggle sharing ───────────────────────────────────────────
@@ -1549,8 +1555,9 @@
         const chip = document.createElement('div');
         chip.className = 'dist-chip';
         chip.onclick = () => window.focusMember(uid);
-        // FIX: sanitize nama & emoji di bottom bar
+        // FIX: sanitize nama & emoji di bottom bar, render dist-dot
         chip.innerHTML = `
+      <div class="dist-dot" style="background:${m.color}"></div>
       <span class="dist-label">${sanitize(m.emoji)} ${sanitize(m.name)}</span>
       <span class="dist-value">${fmtDist(d)}</span>
     `;
@@ -1585,6 +1592,7 @@
       // FIX: Hapus manual remove() – sudah ditangani oleh onDisconnect(myRef).remove()
       // Browser tidak menunggu Promise async saat tab ditutup, jadi ini tidak reliabel
       if (watchId) navigator.geolocation.clearWatch(watchId);
+      if (simIntervalId) clearInterval(simIntervalId);
     });
 
     // ─── Auto-fill room from URL ──────────────────────────────────
