@@ -4,17 +4,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Family Trip – Real-time GPS Sharing</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"> <!-- FIX: added Space+Mono -->
+  <title>Real-time GPS Sharing</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Space+Mono:wght@400;700&display=swap"
+    rel="stylesheet"> <!-- FIX: added Space+Mono -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
     :root {
       --primary-color: #247066;
       --accent-color: #187a7d;
-      --accent: #187a7d;        /* FIX: alias for spinner */
-      --accent2: #2b9a9d;       /* FIX: accuracy bar gradient start */
-      --accent3: #5bb5b0;       /* FIX: accuracy bar gradient end */
+      --accent: #187a7d;
+      /* FIX: alias for spinner */
+      --accent2: #2b9a9d;
+      /* FIX: accuracy bar gradient start */
+      --accent3: #5bb5b0;
+      /* FIX: accuracy bar gradient end */
       --bg-light: #e5e6e8;
       --danger-color: #de3737;
       --text: #247066;
@@ -45,49 +50,9 @@
       height: 100dvh;
     }
 
-    /* HEADER */
-    header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 10px 16px;
-      background: linear-gradient(135deg, #1f7b7f 0%, #2b9a9d 100%); /* FIX: was 100%,100% */
-      border-bottom: 1px solid var(--border);
-      z-index: 100;
-      gap: 10px;
-      flex-shrink: 0;
-    }
 
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 1rem;
-      font-weight: 800;
-      white-space: nowrap;
-      color: var(--border);
-    }
 
-    .logo-dot {
-      width: 10px;
-      height: 10px;
-      background: var(--border);
-      border-radius: 50%;
-      box-shadow: 0 0 10px var(--accent-color);
-      animation: pulse 2s infinite;
-    }
 
-    @keyframes pulse {
-
-      0%,
-      100% {
-        box-shadow: 0 0 8px var(--accent-color);
-      }
-
-      50% {
-        box-shadow: 0 0 20px var(--accent-color), 0 0 40px var(--accent-color);
-      }
-    }
 
     .room-info {
       display: flex;
@@ -143,26 +108,32 @@
     }
 
     .logout-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 14px;
+      z-index: 1000;
       background: var(--danger-color);
       color: var(--bg-light);
       border: none;
-      border-radius: 8px;
-      padding: 8px 14px;
+      border-radius: 30px;
+      padding: 10px 18px;
       font-family: 'Inter', sans-serif;
       font-weight: 700;
-      font-size: 0.78rem;
+      font-size: 0.8rem;
       cursor: pointer;
-      display: flex;
+      display: none;
+      /* Controlled by JS as flex/none */
       align-items: center;
       gap: 6px;
       white-space: nowrap;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
       transition: all .2s;
-      flex-shrink: 0;
     }
 
     .logout-btn:hover {
       background: #c62626;
-      transform: translateY(-1px);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
     }
 
     /* LAYOUT */
@@ -831,9 +802,7 @@
         height: 60vh;
       }
 
-      header {
-        padding: 8px 12px;
-      }
+
 
       .room-info {
         max-width: 200px;
@@ -870,10 +839,7 @@
         height: 70vh;
       }
 
-      .logo-text {
-        display: flex;
-        color: var(--border); /* FIX: was (var(--border)) - invalid syntax */
-      }
+
 
       .modal {
         width: 95%;
@@ -941,21 +907,6 @@
       </div>
     </div>
   </div>
-
-  <!-- SHARE MODAL -->
-  <div class="overlay" id="shareOverlay">
-    <div class="modal">
-      <div class="modal-title">Undang <span>Teman</span> 🔗</div>
-      <p class="modal-sub">Bagikan link ini ke teman-teman agar mereka bisa bergabung dari perangkat manapun.</p>
-      <!-- FIX: room-id-display ditambahkan -->
-      <div class="room-id-display" id="shareRoomId" onclick="copyRoomId()" title="Klik untuk salin Room ID">TRIPIN</div>
-      <p class="copy-hint">✨ Klik Room ID di atas untuk menyalin, atau salin link lengkap:</p>
-      <button class="primary-btn" onclick="copyLink()">📋 Salin Link Room</button>
-      <div class="or-divider">atau</div>
-      <button class="secondary-btn" onclick="closeShare()">Tutup</button>
-    </div>
-  </div>
-
   <!-- DUPLICATE TAB MODAL -->
   <div class="overlay" id="duplicateTabOverlay">
     <div class="modal" style="text-align:center">
@@ -968,23 +919,9 @@
     </div>
   </div>
 
-  <!-- HEADER -->
-  <header>
-    <div class="logo">
-      <div class="logo-dot"></div>
-      <span class="logo-text">Family Trip</span> <!-- FIX: elemen logo-text ditambahkan -->
-    </div>
-    <!-- FIX: room-info ditambahkan ke header -->
-    <div class="room-info" id="roomInfo" style="display:none">
-      <span class="room-label">Room:</span>
-      <span class="room-id" id="roomIdDisplay" onclick="openShare()" title="Klik untuk bagikan">TRIPIN</span>
-    </div>
-    <div style="display:flex; gap:8px; align-items:center;">
-      <button class="share-btn" id="shareBtn" onclick="openShare()" style="display:none">🔗 Undang Teman</button>
-      <button class="logout-btn" id="logoutBtn" onclick="handleLogout()" style="display:none" title="Logout">Ganti
-        Nama</button>
-    </div>
-  </header>
+  <!-- FLOATING LOGOUT BUTTON -->
+  <button class="logout-btn" id="logoutBtn" onclick="handleLogout()" style="display:none" title="Logout">Ganti Nama
+  </button>
 
   <div class="main">
     <div class="sidebar">
@@ -1053,7 +990,7 @@
     const FIXED_ROOM = 'TRIPIN';
 
     // ─── Sanitize helper (FIX: mencegah XSS via nama user) ───────
-    const sanitize = s => String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    const sanitize = s => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
     // ─── BroadcastChannel & Tab Detection ─────────────────────────
     let broadcastChannel = null;
@@ -1122,9 +1059,6 @@
         clearInterval(simIntervalId);
         simIntervalId = null;
       }
-
-      // FIX: Sembunyikan room-info di header
-      document.getElementById('roomInfo').style.display = 'none';
 
       // Clear URL dari parameter room
       const u = new URL(location);
@@ -1274,12 +1208,7 @@
       history.replaceState({}, '', u);
 
       // Header
-      document.getElementById('shareBtn').style.display = 'flex';
       document.getElementById('logoutBtn').style.display = 'flex';
-
-      // FIX: Tampilkan room-info di header
-      document.getElementById('roomIdDisplay').textContent = roomId;
-      document.getElementById('roomInfo').style.display = 'flex';
 
       // Show floating status panel
       document.getElementById('floatingStatus').style.display = 'flex';
@@ -1430,7 +1359,7 @@
     }
 
     function markerIcon(emoji, color, isMe, isSharing = true) {
-      const sz = isMe ? 42 : 36;
+      const sz = isMe ? 36 : 24;
       const bgColor = isSharing ? color : '#9ca3af';
       const shadowColor = isSharing ? `${color}99` : 'rgba(156, 163, 175, 0.6)';
       const borderColor = isSharing ? (isMe ? '#fff' : color) : (isMe ? '#fff' : '#6b7280');
@@ -1528,7 +1457,7 @@
     window.focusMember = uid => {
       const m = members[uid];
       if (!m || m.lat == null) { showToast('📍 Lokasi belum tersedia'); return; }
-      map.flyTo([m.lat, m.lng], 16, { duration: 1 });
+      map.flyTo([m.lat, m.lng], 19, { duration: 1 });
       if (markers[uid]) markers[uid].openPopup();
     };
 
@@ -1565,24 +1494,7 @@
       });
     }
 
-    // ─── Share modal ──────────────────────────────────────────────
-    window.openShare = () => {
-      // FIX: Update room ID di share modal setiap kali dibuka
-      document.getElementById('shareRoomId').textContent = roomId || FIXED_ROOM;
-      document.getElementById('shareOverlay').classList.add('show');
-    };
-    window.closeShare = () => document.getElementById('shareOverlay').classList.remove('show');
-    window.copyLink = () => {
-      // FIX: Sertakan location.search agar link mengandung ?room=TRIPIN
-      const url = `${location.origin}${location.pathname}${location.search}`;
-      navigator.clipboard.writeText(url).then(() => showToast('✅ Link disalin!'));
-      window.closeShare();
-    };
-    // FIX: Fungsi baru untuk salin hanya Room ID
-    window.copyRoomId = () => {
-      const id = roomId || FIXED_ROOM;
-      navigator.clipboard.writeText(id).then(() => showToast('✅ Room ID disalin!'));
-    };
+
 
     // ─── Cleanup ──────────────────────────────────────────────────
     window.addEventListener('beforeunload', () => {
