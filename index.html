@@ -783,6 +783,62 @@
       border-radius: 4px;
     }
 
+    /* FOLLOW MODE INDICATOR */
+    #followIndicator {
+      display: none;
+      position: absolute;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 500;
+      background: var(--card-bg);
+      border: 2px solid var(--accent-color);
+      border-radius: 20px;
+      padding: 6px 14px 6px 12px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--accent-color);
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.18);
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+      pointer-events: all;
+      animation: fadeInDown .25s ease;
+    }
+
+    #followIndicator .follow-cancel {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      transition: color .2s;
+    }
+
+    #followIndicator .follow-cancel:hover {
+      color: var(--danger-color);
+    }
+
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateX(-50%) translateY(-8px); }
+      to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
+
+    /* Pulsing border for followed member card */
+    .member-card.following {
+      animation: pulse-card 1.8s ease-in-out infinite;
+    }
+
+    @keyframes pulse-card {
+      0%, 100% { box-shadow: 0 0 0 2px currentColor; }
+      50%       { box-shadow: 0 0 0 4px currentColor; }
+    }
+
     @media(max-width:768px) {
       .sidebar {
         width: 200px;
@@ -944,6 +1000,11 @@
 
     </div>
     <div id="map" style="position:relative;">
+      <!-- Follow Mode Indicator -->
+      <div id="followIndicator">
+        <span id="followIndicatorText">📍 Mengikuti ...</span>
+        <button class="follow-cancel" onclick="cancelFollow()" title="Hentikan ikuti">✕</button>
+      </div>
       <!-- Floating Status Panel -->
       <div class="floating-status" id="floatingStatus" style="display:none">
         <div class="status-item">
@@ -1078,6 +1139,7 @@
     let myLat = null, myLng = null;
     let map = null, mapReady = false, firstFix = true;
     let colorIdx = 0;
+    let followedUid = null;  // UID anggota yang sedang di-follow (keep centered)
     const members = {};
     const markers = {};
     const trails = {};
@@ -1356,6 +1418,14 @@
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
         { maxZoom: 19 }).addTo(map);
       mapReady = true;
+
+      // Batalkan follow mode saat user drag peta secara manual
+      map.on('dragstart', () => {
+        if (followedUid) {
+          cancelFollow();
+          showToast('🗺️ Mode ikuti dibatalkan');
+        }
+      });
     }
 
     function markerIcon(emoji, color, isMe, isSharing = true) {
@@ -1394,7 +1464,8 @@
         markers[uid] = L.marker([m.lat, m.lng],
           { icon: markerIcon(m.emoji, m.color, m.isMe, isSharing) })
           .addTo(map)
-          .bindPopup(popupContent);
+          .bindPopup(popupContent)
+          .on('click', () => window.focusMember(uid));  // klik marker → aktifkan follow
       }
       // Trail
       if (!trailPts[uid]) trailPts[uid] = [];
@@ -1408,6 +1479,11 @@
       if (arr.length > 1) {
         trails[uid] = L.polyline(arr.map(p => [p.lat, p.lng]),
           { color: m.color, weight: 2, opacity: .55, dashArray: '4 7' }).addTo(map);
+      }
+
+      // ── FOLLOW MODE: pusatkan peta ke marker yang sedang di-follow ──
+      if (followedUid === uid && mapReady) {
+        map.panTo([m.lat, m.lng]);
       }
     }
 
@@ -1433,12 +1509,16 @@
       list.innerHTML = '';
       Object.entries(members).forEach(([uid, m]) => {
         const online = m.sharing && m.lat != null;
+        const isFollowing = uid === followedUid;
         const card = document.createElement('div');
-        card.className = 'member-card' + (m.isMe ? ' me' : '');
+        card.className = 'member-card' + (m.isMe ? ' me' : '') + (isFollowing ? ' following' : '');
         card.style.borderColor = m.color;
         card.style.background = m.color + '12';
+        if (isFollowing) card.style.color = m.color; // untuk animasi pulse-card via currentColor
         card.onclick = () => window.focusMember(uid);
-        card.title = m.isMe ? 'Anda' : `Klik untuk fokus ke ${m.name}`;
+        card.title = m.isMe
+          ? (isFollowing ? 'Klik untuk berhenti ikuti' : 'Klik untuk ikuti posisi Anda')
+          : (isFollowing ? `Klik untuk berhenti ikuti ${m.name}` : `Klik untuk ikuti ${m.name}`);
         // FIX: status-dot dipindah ke dalam .avatar (position:relative)
         // agar dot muncul di pojok kanan-bawah avatar, bukan di pojok card
         // FIX: sanitize nama untuk mencegah XSS
@@ -1447,18 +1527,49 @@
         ${sanitize(m.emoji)}
         <div class="status-dot ${online ? 'online' : 'offline'}"></div>
       </div>
-      <span>${sanitize(m.name)}${m.isMe ? ' (Me)' : ''}</span>
+      <span>${sanitize(m.name)}${m.isMe ? ' (Me)' : ''}${isFollowing ? ' 🔒' : ''}</span>
     `;
         list.appendChild(card);
       });
+    }
+
+    // ─── Follow Mode ──────────────────────────────────────────────
+    window.cancelFollow = () => {
+      followedUid = null;
+      updateFollowIndicator();
+    };
+
+    function updateFollowIndicator() {
+      const indicator = document.getElementById('followIndicator');
+      if (followedUid && members[followedUid]) {
+        const m = members[followedUid];
+        document.getElementById('followIndicatorText').textContent =
+          `${m.emoji} Mengikuti ${sanitize(m.name)}`;
+        indicator.style.display = 'flex';
+      } else {
+        indicator.style.display = 'none';
+      }
+      renderMembers(); // refresh highlight kartu anggota
     }
 
     // ─── Focus on map ─────────────────────────────────────────────
     window.focusMember = uid => {
       const m = members[uid];
       if (!m || m.lat == null) { showToast('📍 Lokasi belum tersedia'); return; }
-      map.flyTo([m.lat, m.lng], 19, { duration: 1 });
+
+      // Toggle: klik lagi pada anggota yang sama → matikan follow
+      if (followedUid === uid) {
+        cancelFollow();
+        showToast('📍 Mode ikuti dinonaktifkan');
+        return;
+      }
+
+      followedUid = uid;
+      // Fly ke posisi dengan zoom 16, lalu panTo akan menjaga posisi tetap di tengah
+      map.flyTo([m.lat, m.lng], 16, { duration: 1 });
       if (markers[uid]) markers[uid].openPopup();
+      updateFollowIndicator();
+      showToast(`📍 Mengikuti ${m.name}`);
     };
 
     // ─── Distance bar ─────────────────────────────────────────────
