@@ -783,6 +783,25 @@
       border-radius: 4px;
     }
 
+    /* PERMANENT NAME LABEL (Leaflet tooltip permanent) */
+    .member-label {
+      background: rgba(255, 255, 255, 0.96) !important;
+      border: 1px solid rgba(0, 0, 0, 0.08) !important;
+      border-radius: 10px !important;
+      padding: 2px 8px !important;
+      font-family: 'Inter', sans-serif !important;
+      font-size: 0.7rem !important;
+      font-weight: 700 !important;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.13) !important;
+      white-space: nowrap !important;
+      pointer-events: none !important;
+    }
+
+    /* Sembunyikan panah tooltip bawaan Leaflet */
+    .member-label.leaflet-tooltip-top::before {
+      display: none !important;
+    }
+
     /* FOLLOW MODE INDICATOR */
     #followIndicator {
       display: none;
@@ -1144,6 +1163,8 @@
     const markers = {};
     const trails = {};
     const trailPts = {};
+    const memberNumbers = {};   // uid → nomor urut
+    let nextMemberNumber = 1;
 
 
     // ─── LocalStorage Helpers ─────────────────────────────────────
@@ -1280,6 +1301,9 @@
       // Map
       initMap();
 
+      // Pre-assign nomor untuk diri sendiri supaya GPS pertama sudah punya nomor
+      if (!memberNumbers[myId]) memberNumbers[myId] = nextMemberNumber++;
+
       // Write own presence + auto-remove on disconnect
       const myRef = ref(db, `rooms/${roomId}/members/${myId}`);
       set(myRef, {
@@ -1310,6 +1334,8 @@
             showToast(`${m.emoji} ${m.name} bergabung!`);
             trailPts[uid] = [];
           }
+          // Assign nomor urut saat pertama kali anggota terdeteksi
+          if (!memberNumbers[uid]) memberNumbers[uid] = nextMemberNumber++;
           members[uid] = { ...m, isMe: uid === myId };
           if (m.lat && m.lng) updateMarker(uid);
         });
@@ -1428,23 +1454,34 @@
       });
     }
 
-    function markerIcon(emoji, color, isMe, isSharing = true) {
-      const sz = isMe ? 36 : 24;
+    function markerIcon(number, color, isMe, isSharing = true) {
+      const sz = isMe ? 34 : 26;
       const bgColor = isSharing ? color : '#9ca3af';
-      const shadowColor = isSharing ? `${color}99` : 'rgba(156, 163, 175, 0.6)';
-      const borderColor = isSharing ? (isMe ? '#fff' : color) : (isMe ? '#fff' : '#6b7280');
+      const shadow = isSharing
+        ? `0 0 0 2.5px #fff, 0 2px 8px ${color}66`
+        : `0 0 0 2.5px #fff, 0 2px 6px rgba(0,0,0,0.18)`;
+      const glow = (isMe && isSharing) ? `, 0 0 0 4px ${color}33` : '';
 
       return L.divIcon({
         className: '',
         html: `<div style="
-      background:${bgColor};width:${sz}px;height:${sz}px;
-      border-radius:50% 50% 50% 0;transform:rotate(-45deg);
-      display:flex;align-items:center;justify-content:center;
-      box-shadow:0 0 ${isMe ? 16 : 8}px ${shadowColor};
-      border:2px solid ${borderColor};">
-        <span style="transform:rotate(45deg);font-size:${isMe ? 1.3 : 1.1}rem;opacity:${isSharing ? 1 : 0.7}">${emoji}</span>
-      </div>`,
-        iconSize: [sz, sz], iconAnchor: [sz / 2, sz], popupAnchor: [0, -sz]
+          background:${bgColor};
+          width:${sz}px; height:${sz}px;
+          border-radius:50%;
+          display:flex; align-items:center; justify-content:center;
+          box-shadow:${shadow}${glow};
+          color:#fff;
+          font-family:'Inter',sans-serif;
+          font-size:${isMe ? '0.88' : '0.72'}rem;
+          font-weight:800;
+          line-height:1;
+          user-select:none;
+          opacity:${isSharing ? 1 : 0.6};
+        ">${number}</div>`,
+        iconSize: [sz, sz],
+        iconAnchor: [sz / 2, sz / 2],
+        popupAnchor: [0, -(sz / 2) - 6],
+        tooltipAnchor: [0, -(sz / 2) - 4]
       });
     }
 
@@ -1452,19 +1489,39 @@
       const m = members[uid];
       if (!m || m.lat == null || !mapReady) return;
 
-      const isSharing = m.sharing !== false; // Default to true if undefined
-      // FIX: sanitize emoji & nama untuk mencegah XSS di popup
-      const popupContent = `<b>${sanitize(m.emoji)} ${sanitize(m.name)}</b>${m.isMe ? ' (Me)' : ''}${isSharing ? '' : '<br><small><i>Lokasi dinonaktifkan</i></small>'}`;
+      const isSharing = m.sharing !== false;
+      const num = memberNumbers[uid] || '?';
+
+      // Popup (muncul saat diklik): tampilkan detail lebih lengkap
+      const popupContent = `
+        <div style="font-family:'Inter',sans-serif;font-size:0.82rem;line-height:1.5">
+          <b style="font-size:0.9rem">${sanitize(m.emoji)} ${sanitize(m.name)}</b>
+          ${m.isMe ? '<span style="color:var(--muted);font-size:0.72rem"> (Anda)</span>' : ''}
+          ${isSharing ? '' : '<br><span style="color:#9ca3af;font-size:0.72rem;font-style:italic">Lokasi disembunyikan</span>'}
+        </div>`;
+
+      // Tooltip permanen: hanya nama, selalu terlihat di atas marker
+      const tooltipHtml = `<span style="color:${m.color};font-weight:700;">${sanitize(m.name)}${m.isMe ? ' ✦' : ''}</span>`;
 
       if (markers[uid]) {
         markers[uid].setLatLng([m.lat, m.lng]);
-        markers[uid].setIcon(markerIcon(m.emoji, m.color, m.isMe, isSharing));
+        markers[uid].setIcon(markerIcon(num, m.color, m.isMe, isSharing));
         markers[uid].setPopupContent(popupContent);
+        // Update warna/teks tooltip jika diperlukan (misal sharing berubah)
+        const tip = markers[uid].getTooltip();
+        if (tip) markers[uid].setTooltipContent(tooltipHtml);
       } else {
-        markers[uid] = L.marker([m.lat, m.lng],
-          { icon: markerIcon(m.emoji, m.color, m.isMe, isSharing) })
+        markers[uid] = L.marker([m.lat, m.lng], {
+          icon: markerIcon(num, m.color, m.isMe, isSharing)
+        })
           .addTo(map)
-          .bindPopup(popupContent)
+          .bindPopup(popupContent, { maxWidth: 200 })
+          .bindTooltip(tooltipHtml, {
+            permanent: true,
+            direction: 'top',
+            className: 'member-label',
+            offset: [0, 0]
+          })
           .on('click', () => window.focusMember(uid));  // klik marker → aktifkan follow
       }
       // Trail
@@ -1510,25 +1567,29 @@
       Object.entries(members).forEach(([uid, m]) => {
         const online = m.sharing && m.lat != null;
         const isFollowing = uid === followedUid;
+        const num = memberNumbers[uid] || '?';
         const card = document.createElement('div');
         card.className = 'member-card' + (m.isMe ? ' me' : '') + (isFollowing ? ' following' : '');
         card.style.borderColor = m.color;
         card.style.background = m.color + '12';
-        if (isFollowing) card.style.color = m.color; // untuk animasi pulse-card via currentColor
+        if (isFollowing) card.style.color = m.color;
         card.onclick = () => window.focusMember(uid);
         card.title = m.isMe
           ? (isFollowing ? 'Klik untuk berhenti ikuti' : 'Klik untuk ikuti posisi Anda')
           : (isFollowing ? `Klik untuk berhenti ikuti ${m.name}` : `Klik untuk ikuti ${m.name}`);
-        // FIX: status-dot dipindah ke dalam .avatar (position:relative)
-        // agar dot muncul di pojok kanan-bawah avatar, bukan di pojok card
-        // FIX: sanitize nama untuk mencegah XSS
         card.innerHTML = `
-      <div class="avatar">
-        ${sanitize(m.emoji)}
-        <div class="status-dot ${online ? 'online' : 'offline'}"></div>
-      </div>
-      <span>${sanitize(m.name)}${m.isMe ? ' (Me)' : ''}${isFollowing ? ' 🔒' : ''}</span>
-    `;
+          <div class="avatar">
+            <div style="
+              width:26px; height:26px; border-radius:50%;
+              background:${m.color}; color:#fff;
+              display:flex; align-items:center; justify-content:center;
+              font-size:0.72rem; font-weight:800; flex-shrink:0;
+              opacity:${(m.sharing === false) ? 0.5 : 1};
+            ">${num}</div>
+            <div class="status-dot ${online ? 'online' : 'offline'}"></div>
+          </div>
+          <span>${sanitize(m.name)}${m.isMe ? ' <small style="opacity:.55">(Me)</small>' : ''}${isFollowing ? ' 🔒' : ''}</span>
+        `;
         list.appendChild(card);
       });
     }
