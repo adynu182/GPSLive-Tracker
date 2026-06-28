@@ -843,6 +843,26 @@
       color: var(--danger-color);
     }
 
+    /* ── Connection status badge ── */
+    #connectionBadge {
+      display: none;
+      position: absolute;
+      bottom: 56px;   /* di atas bottom-bar */
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 500;
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      white-space: nowrap;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+      pointer-events: none;
+      animation: fadeInDown .25s ease;
+    }
+    #connectionBadge.offline   { background: #de3737; color: #fff; }
+    #connectionBadge.reconnect { background: #f59e0b; color: #fff; }
+
     @keyframes fadeInDown {
       from { opacity: 0; transform: translateX(-50%) translateY(-8px); }
       to   { opacity: 1; transform: translateX(-50%) translateY(0); }
@@ -1024,6 +1044,8 @@
         <span id="followIndicatorText">📍 Mengikuti ...</span>
         <button class="follow-cancel" onclick="cancelFollow()" title="Hentikan ikuti">✕</button>
       </div>
+      <!-- Connection status badge -->
+      <div id="connectionBadge"></div>
       <!-- Floating Status Panel -->
       <div class="floating-status" id="floatingStatus" style="display:none">
         <div class="status-item">
@@ -1231,6 +1253,26 @@
       toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
     }
 
+    // ── Connection badge: muncul saat offline/reconnect, hilang saat connected ──
+    let _prevConnected = true;  // anggap online di awal
+    function showConnectionStatus(connected) {
+      const badge = document.getElementById('connectionBadge');
+      if (!badge) return;
+      if (connected) {
+        // Kalau sebelumnya offline/reconnect → tampilkan "kembali online" sebentar
+        if (!_prevConnected) {
+          showToast('✅ Kembali online');
+        }
+        badge.style.display = 'none';
+        badge.className = '';
+      } else {
+        badge.textContent = '📡 Offline — mencoba sambung kembali…';
+        badge.className = 'offline';
+        badge.style.display = 'block';
+      }
+      _prevConnected = connected;
+    }
+
     // ─── Start Tracking ───────────────────────────────────────────
     window.startTracking = async () => {
       const name = document.getElementById('nameInput').value.trim();
@@ -1322,7 +1364,7 @@
         Object.keys(members).forEach(uid => {
           if (!data[uid] && uid !== myId) {
             const member = members[uid];
-            showToast(`${member.emoji} ${member.name} keluar`);
+            showToast(`${member.emoji || '🧑'} ${member.name || 'Anggota'} keluar`);
             if (markers[uid]) { map.removeLayer(markers[uid]); delete markers[uid]; }
             if (trails[uid]) { map.removeLayer(trails[uid]); delete trails[uid]; }
             delete members[uid]; delete trailPts[uid];
@@ -1332,12 +1374,24 @@
         // Handle joins / updates
         Object.entries(data).forEach(([uid, m]) => {
           if (!members[uid] && uid !== myId) {
-            showToast(`${m.emoji} ${m.name} bergabung!`);
+            showToast(`${m.emoji || '🧑'} ${m.name || 'Anggota'} bergabung!`);
             trailPts[uid] = [];
           }
           // Assign nomor urut saat pertama kali anggota terdeteksi
           if (!memberNumbers[uid]) memberNumbers[uid] = nextMemberNumber++;
-          members[uid] = { ...m, isMe: uid === myId };
+
+          // ── OFFLINE GUARD: merge dengan cache lokal ──────────────
+          // Firebase kadang kirim data parsial saat reconnect (nama/warna/emoji bisa null).
+          // Pakai ?? untuk hanya update field kalau nilai baru benar-benar ada.
+          const prev = members[uid] || {};
+          members[uid] = {
+            ...prev,
+            ...m,
+            name:  m.name  ?? prev.name  ?? 'Anggota',
+            emoji: m.emoji ?? prev.emoji ?? '🧑',
+            color: m.color ?? prev.color ?? COLORS[0],
+            isMe:  uid === myId
+          };
           if (m.lat && m.lng) updateMarker(uid);
         });
 
@@ -1346,6 +1400,26 @@
 
         // Close modal first time
         document.getElementById('joinOverlay').classList.remove('show');
+      });
+
+      // ── RECONNECT HANDLER ──────────────────────────────────────
+      // Saat ganti jaringan (WiFi↔seluler) atau sinyal buruk, Firebase
+      // menjalankan onDisconnect → node kita terhapus dari DB.
+      // Listener .info/connected mendeteksi koneksi kembali dan re-write presence.
+      onValue(ref(db, '.info/connected'), snap => {
+        const connected = snap.val() === true;
+        showConnectionStatus(connected);
+        if (connected) {
+          // Re-tulis data kita supaya nama/warna/emoji tidak hilang setelah reconnect
+          const myRef = ref(db, `rooms/${roomId}/members/${myId}`);
+          set(myRef, {
+            name: myName, emoji: myEmoji, color: myColor,
+            sharing: sharingOn,
+            lat: myLat || null, lng: myLng || null,
+            ts: serverTimestamp(), deviceId: getDeviceId()
+          });
+          onDisconnect(myRef).remove();
+        }
       });
 
       startGPS();
@@ -1493,21 +1567,12 @@
       const isSharing = m.sharing !== false;
       const num = memberNumbers[uid] || '?';
 
-      // Popup (muncul saat diklik): tampilkan detail lebih lengkap
-      const popupContent = `
-        <div style="font-family:'Inter',sans-serif;font-size:0.82rem;line-height:1.5">
-          <b style="font-size:0.9rem">${sanitize(m.emoji)} ${sanitize(m.name)}</b>
-          ${m.isMe ? '<span style="color:var(--muted);font-size:0.72rem"> (Anda)</span>' : ''}
-          ${isSharing ? '' : '<br><span style="color:#9ca3af;font-size:0.72rem;font-style:italic">Lokasi disembunyikan</span>'}
-        </div>`;
-
       // Tooltip permanen: hanya nama, selalu terlihat di atas marker
       const tooltipHtml = `<span style="color:${m.color};font-weight:700;">${sanitize(m.name)}${m.isMe ? ' ✦' : ''}</span>`;
 
       if (markers[uid]) {
         markers[uid].setLatLng([m.lat, m.lng]);
         markers[uid].setIcon(markerIcon(num, m.color, m.isMe, isSharing));
-        markers[uid].setPopupContent(popupContent);
         // Update warna/teks tooltip jika diperlukan (misal sharing berubah)
         const tip = markers[uid].getTooltip();
         if (tip) markers[uid].setTooltipContent(tooltipHtml);
@@ -1516,7 +1581,6 @@
           icon: markerIcon(num, m.color, m.isMe, isSharing)
         })
           .addTo(map)
-          .bindPopup(popupContent, { maxWidth: 200 })
           .bindTooltip(tooltipHtml, {
             permanent: true,
             direction: 'top',
@@ -1634,7 +1698,6 @@
       isFollowFlying = true;
       map.flyTo([m.lat, m.lng], 16, { duration: 1 });
       map.once('moveend', () => { isFollowFlying = false; });
-      if (markers[uid]) markers[uid].openPopup();
       updateFollowIndicator();
       showToast(`📍 Mengikuti ${m.name}`);
     };
