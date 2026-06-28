@@ -1107,7 +1107,7 @@
     import L from "leaflet";
     import { db } from "./firebase-config.js";
     import {
-      ref, set, onValue,
+      ref, set, update, onValue,
       onDisconnect, serverTimestamp, remove, get
     } from "firebase/database";
 
@@ -1123,6 +1123,10 @@
 
     // ─── Sanitize helper (FIX: mencegah XSS via nama user) ───────
     const sanitize = s => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+    // ─── Color sanitizer (FIX: mencegah CSS injection via m.color dari Firebase) ───
+    // Hanya izinkan format hex 6-digit (#rrggbb). Fallback ke warna pertama jika tidak valid.
+    const safeColor = c => /^#[0-9a-fA-F]{6}$/.test(c) ? c : COLORS[0];
 
     // ─── BroadcastChannel & Tab Detection ─────────────────────────
     let broadcastChannel = null;
@@ -1227,17 +1231,22 @@
     function saveUserData() {
       localStorage.setItem('lokasi_name', myName);
       localStorage.setItem('lokasi_emoji', myEmoji);
+      localStorage.setItem('lokasi_color', myColor);  // FIX: simpan warna agar konsisten lintas sesi
     }
 
     function loadUserData() {
       const savedName = localStorage.getItem('lokasi_name');
       const savedEmoji = localStorage.getItem('lokasi_emoji');
+      const savedColor = localStorage.getItem('lokasi_color');  // FIX: muat warna tersimpan
       if (savedName) {
         myName = savedName;
         document.getElementById('nameInput').value = savedName;
       }
       if (savedEmoji) {
         myEmoji = savedEmoji;
+      }
+      if (savedColor && safeColor(savedColor) === savedColor) {
+        myColor = savedColor;  // hanya pakai jika valid hex
       }
     }
 
@@ -1414,7 +1423,11 @@
       myName = name;
       myId = genId();
       roomId = FIXED_ROOM;
-      myColor = COLORS[colorIdx++ % COLORS.length];
+      // FIX: gunakan warna tersimpan jika ada (konsistensi antar sesi).
+      // Generate warna baru hanya kalau belum pernah login sebelumnya.
+      if (!localStorage.getItem('lokasi_color')) {
+        myColor = COLORS[colorIdx++ % COLORS.length];
+      }
       saveUserData();
       document.getElementById('setupSection').style.display = 'none';
       document.getElementById('loadingSection').style.display = '';
@@ -1499,7 +1512,7 @@
             ...m,
             name:  m.name  ?? prev.name  ?? 'Anggota',
             emoji: m.emoji ?? prev.emoji ?? '🧑',
-            color: m.color ?? prev.color ?? COLORS[0],
+            color: safeColor(m.color ?? prev.color ?? COLORS[0]),  // FIX: validasi hex color dari Firebase
             isMe:  uid === myId
           };
           if (m.lat && m.lng) updateMarker(uid);
@@ -1538,10 +1551,11 @@
     // ─── Firebase write ───────────────────────────────────────────
     function writeLocation(lat, lng) {
       if (!myId || !roomId) return;
-      const base = `rooms/${roomId}/members/${myId}`;
-      set(ref(db, base + '/lat'), lat);
-      set(ref(db, base + '/lng'), lng);
-      set(ref(db, base + '/ts'), serverTimestamp());
+      // FIX: satu update() atomik menggantikan 3 set() terpisah.
+      // Mencegah race condition di mana listener lain bisa menerima lat baru tapi lng masih lama.
+      update(ref(db, `rooms/${roomId}/members/${myId}`), {
+        lat, lng, ts: serverTimestamp()
+      });
     }
     function writeSharing(val) {
       if (!myId || !roomId) return;
@@ -1707,10 +1721,20 @@
         arr.push({ lat: m.lat, lng: m.lng });
         if (arr.length > MAX_TRAIL) arr.shift();
       }
-      if (trails[uid]) map.removeLayer(trails[uid]);
+      // FIX: gunakan setLatLngs() pada polyline yang sudah ada daripada remove+create tiap tick.
+      // Menghindari overhead removeLayer/addTo dan garbage collection per update GPS.
       if (arr.length > 1) {
-        trails[uid] = L.polyline(arr.map(p => [p.lat, p.lng]),
-          { color: m.color, weight: 2, opacity: .55, dashArray: '4 7' }).addTo(map);
+        const latlngs = arr.map(p => [p.lat, p.lng]);
+        if (trails[uid]) {
+          trails[uid].setLatLngs(latlngs);
+        } else {
+          trails[uid] = L.polyline(latlngs,
+            { color: m.color, weight: 2, opacity: .55, dashArray: '4 7' }).addTo(map);
+        }
+      } else if (trails[uid]) {
+        // Kurang dari 2 titik (misal setelah clear): hapus trail
+        map.removeLayer(trails[uid]);
+        delete trails[uid];
       }
 
       // ── FOLLOW MODE: pusatkan peta ke marker yang sedang di-follow ──
@@ -1878,7 +1902,11 @@
           myName = savedName;
           myEmoji = localStorage.getItem('lokasi_emoji') || '🧑';
           myId = genId();
-          myColor = COLORS[colorIdx++ % COLORS.length];
+          // FIX: myColor sudah di-load oleh loadUserData() dari localStorage.
+          // Generate warna baru hanya kalau belum pernah login (tidak ada warna tersimpan).
+          if (!localStorage.getItem('lokasi_color')) {
+            myColor = COLORS[colorIdx++ % COLORS.length];
+          }
 
           // Broadcast signal bahwa tab ini akan aktif
           if (broadcastChannel) {
