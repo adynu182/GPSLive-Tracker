@@ -1159,6 +1159,7 @@
     let map = null, mapReady = false, firstFix = true;
     let colorIdx = 0;
     let followedUid = null;  // UID anggota yang sedang di-follow (keep centered)
+    let isFollowFlying = false; // true saat flyTo awal follow mode masih berjalan
     const members = {};
     const markers = {};
     const trails = {};
@@ -1539,8 +1540,10 @@
       }
 
       // ── FOLLOW MODE: pusatkan peta ke marker yang sedang di-follow ──
-      if (followedUid === uid && mapReady) {
-        map.panTo([m.lat, m.lng]);
+      // Gunakan setView {animate:false} agar marker SELALU tepat di tengah tanpa lag.
+      // Skip saat isFollowFlying=true (flyTo awal belum selesai) agar tidak bentrok.
+      if (followedUid === uid && mapReady && !isFollowFlying) {
+        map.setView([m.lat, m.lng], map.getZoom(), { animate: false });
       }
     }
 
@@ -1626,8 +1629,11 @@
       }
 
       followedUid = uid;
-      // Fly ke posisi dengan zoom 16, lalu panTo akan menjaga posisi tetap di tengah
+      // Fly ke posisi dengan zoom 16 sebagai animasi awal follow.
+      // isFollowFlying mencegah updateMarker memanggil setView sebelum flyTo selesai.
+      isFollowFlying = true;
       map.flyTo([m.lat, m.lng], 16, { duration: 1 });
+      map.once('moveend', () => { isFollowFlying = false; });
       if (markers[uid]) markers[uid].openPopup();
       updateFollowIndicator();
       showToast(`📍 Mengikuti ${m.name}`);
