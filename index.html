@@ -13,8 +13,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Space+Mono:wght@400;700&display=swap"
     rel="stylesheet"> <!-- FIX: added Space+Mono -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <meta name="description" content="Aplikasi pelacakan GPS real-time berbasis Vite" />
   <style>
     :root {
       --primary-color: #247066;
@@ -1104,11 +1103,13 @@
 
   <!-- FIREBASE -->
   <script type="module">
+    import "leaflet/dist/leaflet.css";
+    import L from "leaflet";
     import { db } from "./firebase-config.js";
     import {
       ref, set, onValue,
       onDisconnect, serverTimestamp, remove, get
-    } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-database.js";
+    } from "firebase/database";
 
     // ─── Firebase init ────────────────────────────────────────────
 
@@ -1369,6 +1370,11 @@
 
     // ─── Start Tracking ───────────────────────────────────────────
     window.startTracking = async () => {
+      if (!db) {
+        showToast('⚠️ Firebase belum siap. Isi konfigurasi VITE_FIREBASE_* terlebih dahulu.');
+        return;
+      }
+
       const name = document.getElementById('nameInput').value.trim();
       if (!name) { showToast('⚠️ Masukkan nama kamu dulu!'); return; }
 
@@ -1418,6 +1424,11 @@
 
     // ─── Session ──────────────────────────────────────────────────
     function startSession() {
+      if (!db) {
+        showToast('⚠️ Firebase belum siap. Isi konfigurasi VITE_FIREBASE_* terlebih dahulu.');
+        return;
+      }
+
       console.log('🎬 Starting session...', { myId, myName, roomId });
 
       // FIX: Set tab aktif setelah login (bukan di initTabDetection)
