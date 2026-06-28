@@ -7,13 +7,13 @@ import { getDatabase } from "https://www.gstatic.com/firebasejs/10.12.1/firebase
 // variables (e.g. `process.env.FIREBASE_API_KEY`) injected by your bundler/CI.
 
 const runtimeConfig = (typeof window !== 'undefined' && window.__FIREBASE_CONFIG__) || (typeof process !== 'undefined' && process.env && {
-  apiKey: process.env.FIREBASE_API_KEY,
-  authDomain: process.env.FIREBASE_AUTH_DOMAIN,
-  databaseURL: process.env.FIREBASE_DATABASE_URL,
-  projectId: process.env.FIREBASE_PROJECT_ID,
-  storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.FIREBASE_APP_ID
+			apiKey: "${{ secrets.FIREBASE_API_KEY }}",
+			authDomain: "${{ secrets.FIREBASE_AUTH_DOMAIN }}",
+			databaseURL: "${{ secrets.FIREBASE_DATABASE_URL }}",
+			projectId: "${{ secrets.FIREBASE_PROJECT_ID }}",
+			storageBucket: "${{ secrets.FIREBASE_STORAGE_BUCKET }}",
+			messagingSenderId: "${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}",
+			appId: "${{ secrets.FIREBASE_APP_ID }}"
 });
 
 if (!runtimeConfig || !runtimeConfig.apiKey) {
