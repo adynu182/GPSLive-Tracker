@@ -3,7 +3,12 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <!-- PWA / iOS fullscreen (berlaku saat di-add ke Home Screen) -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#247066">
   <title>Real-time GPS Sharing</title>
   <link
     href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Space+Mono:wght@400;700&display=swap"
@@ -843,6 +848,28 @@
       color: var(--danger-color);
     }
 
+    /* ── Fullscreen re-entry button ── */
+    #fullscreenBtn {
+      display: none;          /* hanya tampil saat keluar fullscreen & sudah login */
+      position: absolute;
+      bottom: 20px;
+      right: 14px;
+      z-index: 500;
+      width: 36px;
+      height: 36px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      font-size: 1rem;
+      line-height: 1;
+      transition: background .2s, transform .15s;
+      align-items: center;
+      justify-content: center;
+    }
+    #fullscreenBtn:hover { background: var(--bg-light); transform: scale(1.08); }
+
     /* ── Connection status badge ── */
     #connectionBadge {
       display: none;
@@ -1046,6 +1073,8 @@
       </div>
       <!-- Connection status badge -->
       <div id="connectionBadge"></div>
+      <!-- Fullscreen re-entry button (muncul saat user exit fullscreen) -->
+      <button id="fullscreenBtn" title="Layar Penuh" onclick="enterFullscreen()">⛶</button>
       <!-- Floating Status Panel -->
       <div class="floating-status" id="floatingStatus" style="display:none">
         <div class="status-item">
@@ -1140,6 +1169,9 @@
 
     function performLogout() {
       console.log('🚪 Performing logout...');
+
+      // Lepas wake lock saat logout
+      releaseWakeLock();
 
 
 
@@ -1273,10 +1305,76 @@
       _prevConnected = connected;
     }
 
+    // ─── Fullscreen ───────────────────────────────────────────────
+    // Dipanggil saat tombol "Mulai" diklik (harus dalam user-gesture agar browser izinkan).
+    // Juga dipanggil dari tombol ⛶ saat user keluar fullscreen secara manual.
+    function enterFullscreen() {
+      const el = document.documentElement;
+      const rfs = el.requestFullscreen
+        || el.webkitRequestFullscreen
+        || el.mozRequestFullScreen
+        || el.msRequestFullscreen;
+      if (rfs) {
+        rfs.call(el).catch(err => {
+          // Gagal (misal iOS Safari) — tidak perlu toast, PWA meta sudah menanganinya
+          console.info('Fullscreen not supported or denied:', err.message);
+        });
+      }
+    }
+
+    // Sembunyikan/tampilkan tombol ⛶ sesuai status fullscreen
+    function syncFullscreenBtn() {
+      const inFS = !!(document.fullscreenElement
+        || document.webkitFullscreenElement
+        || document.mozFullScreenElement
+        || document.msFullscreenElement);
+      const btn = document.getElementById('fullscreenBtn');
+      if (btn && myId) {
+        btn.style.display = inFS ? 'none' : 'flex';
+      }
+    }
+    ['fullscreenchange','webkitfullscreenchange','mozfullscreenchange','msfullscreenchange']
+      .forEach(ev => document.addEventListener(ev, syncFullscreenBtn));
+
+    // ─── Wake Lock ────────────────────────────────────────────────
+    // Cegah layar redup/mati selama sesi aktif.
+    // Wake Lock otomatis terlepas saat tab ke background — re-acquire saat visible kembali.
+    let wakeLock = null;
+
+    async function requestWakeLock() {
+      if (!('wakeLock' in navigator)) return;
+      try {
+        if (wakeLock) return;  // sudah aktif
+        wakeLock = await navigator.wakeLock.request('screen');
+        wakeLock.addEventListener('release', () => { wakeLock = null; });
+      } catch (err) {
+        // Bisa gagal saat baterai kritis atau browser tidak izinkan
+        console.info('Wake lock failed:', err.message);
+      }
+    }
+
+    function releaseWakeLock() {
+      if (wakeLock) { wakeLock.release(); wakeLock = null; }
+    }
+
+    // Re-acquire wake lock saat halaman aktif kembali (setelah ganti app / lock screen)
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && myId) {
+        requestWakeLock();
+      } else {
+        // Waktu di background, wakeLock otomatis dilepas browser
+        wakeLock = null;
+      }
+    });
+
     // ─── Start Tracking ───────────────────────────────────────────
     window.startTracking = async () => {
       const name = document.getElementById('nameInput').value.trim();
       if (!name) { showToast('⚠️ Masukkan nama kamu dulu!'); return; }
+
+      // Harus dipanggil sebelum await — browser hanya izinkan fullscreen dalam user gesture sinkron
+      enterFullscreen();
+      requestWakeLock();
 
       const btn = document.querySelector('.primary-btn');
       const originalText = btn.innerHTML;
@@ -1335,6 +1433,7 @@
 
       // Header
       document.getElementById('logoutBtn').style.display = 'flex';
+      syncFullscreenBtn();  // tampilkan tombol ⛶ jika tidak fullscreen
 
       // Show floating status panel
       document.getElementById('floatingStatus').style.display = 'flex';
@@ -1530,7 +1629,7 @@
     }
 
     function markerIcon(number, color, isMe, isSharing = true) {
-      const sz = isMe ? 26 : 24;
+      const sz = isMe ? 34 : 26;
       const bgColor = isSharing ? color : '#9ca3af';
       const shadow = isSharing
         ? `0 0 0 2.5px #fff, 0 2px 8px ${color}66`
