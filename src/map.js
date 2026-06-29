@@ -21,7 +21,7 @@ export function initMap(onDragCancelFollow) {
 
 // ─── Buat ikon lingkaran bernomor untuk marker Leaflet ───────────
 export function markerIcon(number, color, isMe, isSharing = true) {
-  const sz      = isMe ? 34 : 26;
+  const sz      = isMe ? 24 : 24;
   const bgColor = isSharing ? color : '#9ca3af';
   const shadow  = isSharing
     ? `0 0 0 2.5px #fff, 0 2px 8px ${color}66`
@@ -39,7 +39,7 @@ export function markerIcon(number, color, isMe, isSharing = true) {
       color:#fff;
       font-family:'Inter',sans-serif;
       font-size:${isMe ? '0.88' : '0.72'}rem;
-      font-weight:800;
+      font-weight:600;
       line-height:1;
       user-select:none;
       opacity:${isSharing ? 1 : 0.6};
