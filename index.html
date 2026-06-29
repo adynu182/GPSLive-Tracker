@@ -19,7 +19,7 @@
   <!-- JOIN MODAL -->
   <div class="overlay show" id="joinOverlay">
     <div class="modal">
-      <div class="modal-title"><span>GPS Live Share</span> 📍</div>
+      <div class="modal-title"><span>Family Trip</span> 📍</div>
       <p class="modal-sub">Bagikan lokasi GPS secara real-time dengan teman-teman dalam satu sesi.</p>
       <div id="setupSection">
         <div class="input-group">
@@ -92,6 +92,19 @@
             <div class="accuracy-value" id="accuracyValue">Menunggu GPS...</div>
           </div>
         </div>
+        <div class="status-divider"></div>
+        <div class="status-item">
+          <!-- Tombol fit/overview: zoom peta agar semua anggota online terlihat -->
+          <button class="fit-all-btn" id="fitAllBtn" onclick="fitAllMembers()" title="Lihat semua anggota">
+            <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+              fill="none" stroke="currentColor" stroke-width="2.2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+          </button>
+        </div>
+        <div class="status-divider"></div>
         <div class="status-item">
           <label class="sharing-toggle">
             <input type="checkbox" id="sharingToggleFloat" checked onchange="toggleSharing(this.checked)">

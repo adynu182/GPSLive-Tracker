@@ -8,6 +8,7 @@ import {
 } from './session.js';
 import { toggleSharing } from './gps.js';
 import { toggleMembersList, cancelFollow, focusMember, showToast } from './ui.js';
+import { fitAllMembers } from './map.js';
 import { db } from '../firebase-config.js';
 import { ref, get } from 'firebase/database';
 
@@ -42,6 +43,7 @@ window.cancelFollow      = cancelFollow;
 window.toggleSharing     = toggleSharing;
 window.enterFullscreen   = enterFullscreen;
 window.focusMember       = focusMember;
+window.fitAllMembers     = fitAllMembers;  // ← tombol mata
 
 // ─── Fullscreen change listeners ─────────────────────────────────
 ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'msfullscreenchange']

@@ -2,7 +2,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { state } from './state.js';
 import { sanitize, MAX_TRAIL } from './constants.js';
-import { focusMember } from './ui.js';
+import { focusMember, cancelFollow, showToast } from './ui.js';
 
 // ─── Inisialisasi peta Leaflet ────────────────────────────────────
 // onDragCancelFollow dipanggil saat user drag peta — memutus follow mode.
@@ -21,7 +21,7 @@ export function initMap(onDragCancelFollow) {
 
 // ─── Buat ikon lingkaran bernomor untuk marker Leaflet ───────────
 export function markerIcon(number, color, isMe, isSharing = true) {
-  const sz      = isMe ? 24 : 24;
+  const sz      = isMe ? 34 : 26;
   const bgColor = isSharing ? color : '#9ca3af';
   const shadow  = isSharing
     ? `0 0 0 2.5px #fff, 0 2px 8px ${color}66`
@@ -39,7 +39,7 @@ export function markerIcon(number, color, isMe, isSharing = true) {
       color:#fff;
       font-family:'Inter',sans-serif;
       font-size:${isMe ? '0.88' : '0.72'}rem;
-      font-weight:600;
+      font-weight:800;
       line-height:1;
       user-select:none;
       opacity:${isSharing ? 1 : 0.6};
@@ -115,4 +115,37 @@ export function updateMarker(uid) {
   if (state.followedUid === uid && state.mapReady && !state.isFollowFlying) {
     state.map.setView([m.lat, m.lng], state.map.getZoom(), { animate: false });
   }
+}
+
+// ─── Fit peta ke semua anggota yang online ────────────────────────
+// Dipanggil dari tombol mata di floating status panel.
+// Membatalkan follow mode dan menyesuaikan zoom agar semua marker terlihat.
+export function fitAllMembers() {
+  if (!state.mapReady) return;
+
+  const online = Object.values(state.members)
+    .filter(m => m.lat != null && m.sharing !== false);
+
+  if (!online.length) {
+    showToast('📍 Belum ada anggota yang online');
+    return;
+  }
+
+  // Batalkan follow mode agar peta tidak langsung di-recenter ulang
+  if (state.followedUid) cancelFollow();
+
+  if (online.length === 1) {
+    // Satu anggota → zoom langsung ke posisinya
+    state.map.setView([online[0].lat, online[0].lng], 15, { animate: true });
+  } else {
+    // Banyak anggota → fitBounds agar semua marker muat di viewport
+    const bounds = L.latLngBounds(online.map(m => [m.lat, m.lng]));
+    state.map.fitBounds(bounds, {
+      padding:  [60, 60],
+      animate:  true,
+      maxZoom:  16,   // jangan terlalu dekat kalau anggota berkumpul
+    });
+  }
+
+  showToast(`👁️ Menampilkan ${online.length} anggota`);
 }

@@ -383,6 +383,51 @@
       font-weight: 600;
     }
 
+    /* ── Pemisah vertikal di dalam floating status panel ── */
+    .status-divider {
+      width: 1px;
+      height: 22px;
+      background: var(--border);
+      flex-shrink: 0;
+    }
+
+    /* ── Tombol mata: zoom ke semua anggota online ─────── */
+    .fit-all-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+      height: 30px;
+      padding: 0;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background 0.18s, color 0.18s, transform 0.12s;
+    }
+
+    .fit-all-btn:hover {
+      background: rgba(36, 112, 102, 0.14);
+      color: var(--accent);
+      transform: scale(1.12);
+    }
+
+    .fit-all-btn:active {
+      transform: scale(0.92);
+    }
+
+    /* Saat ada anggota online yang bisa dilihat → highlight ikon */
+    .fit-all-btn.has-members {
+      color: var(--accent);
+    }
+
+    .fit-all-btn svg {
+      display: block;
+      pointer-events: none;
+    }
+
     /* SIDEBAR STATUS (HIDDEN ON DESKTOP, SHOWN ON MOBILE) */
     .my-status {
       padding: 10px 14px;

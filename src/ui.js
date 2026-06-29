@@ -73,6 +73,14 @@ export function renderMembers() {
   document.getElementById('memberCount').textContent = Object.keys(state.members).length;
   list.innerHTML = '';
 
+  // Update visual state tombol mata: menyala jika ada anggota online selain diri sendiri
+  const fitBtn = document.getElementById('fitAllBtn');
+  if (fitBtn) {
+    const hasOthersOnline = Object.entries(state.members)
+      .some(([uid, m]) => uid !== state.myId && m.lat != null && m.sharing !== false);
+    fitBtn.classList.toggle('has-members', hasOthersOnline);
+  }
+
   Object.entries(state.members).forEach(([uid, m]) => {
     const online     = m.sharing && m.lat != null;
     const isFollowing = uid === state.followedUid;
