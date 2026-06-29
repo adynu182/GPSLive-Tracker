@@ -61,7 +61,7 @@ export function focusMember(uid) {
   state.followedUid = uid;
   // isFollowFlying mencegah updateMarker memanggil setView sebelum flyTo selesai
   state.isFollowFlying = true;
-  state.map.flyTo([m.lat, m.lng], 16, { duration: 1 });
+  state.map.flyTo([m.lat, m.lng], 18, { duration: 1 });
   state.map.once('moveend', () => { state.isFollowFlying = false; });
   updateFollowIndicator();
   showToast(`📍 Mengikuti ${m.name}`);
