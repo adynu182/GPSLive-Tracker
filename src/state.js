@@ -51,6 +51,7 @@ export const state = {
 
   // ── UI state ─────────────────────────────────────────────────────
   toastTimer:       null,
-  _prevConnected:   true,   // tracking koneksi terakhir untuk toast "kembali online"
+  _prevConnected:   true,
   membersCollapsed: false,
+  showLabels:       true,   // true = label nama anggota tampil di atas marker
 };

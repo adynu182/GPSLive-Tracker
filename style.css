@@ -848,6 +848,9 @@
       border-radius: 4px;
     }
 
+    /* Sembunyikan semua label nama saat class labels-hidden aktif di #map */
+    #map.labels-hidden .ml-label { display: none !important; }
+
     /* LABEL NAMA ANGGOTA (elemen HTML di dalam MapLibre Marker) */
     /* Style diapply inline di createMarkerEl() — .ml-label dan .ml-circle */
     .ml-label {

@@ -253,8 +253,19 @@ export function removeMarker(uid) {
   delete state.trailPts[uid];
 }
 
-// ─── Fit peta ke semua anggota yang online (tombol mata) ─────────
-export function fitAllMembers() {
+// ─── Toggle visibilitas label nama di atas marker ─────────────────
+// Menggunakan CSS class di #map — tidak perlu menyentuh tiap marker.
+export function toggleLabels() {
+  state.showLabels = !state.showLabels;
+
+  const mapEl = document.getElementById('map');
+  mapEl.classList.toggle('labels-hidden', !state.showLabels);
+
+  const btn = document.getElementById('toggleLabelsBtn');
+  if (btn) btn.classList.toggle('active', !state.showLabels);
+
+  showToast(state.showLabels ? '🏷️ Nama ditampilkan' : '🏷️ Nama disembunyikan');
+}
   if (!state.mapReady) return;
   const online = Object.values(state.members).filter(m => m.lat != null && m.sharing !== false);
   if (!online.length) { showToast('📍 Belum ada anggota yang online'); return; }
