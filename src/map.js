@@ -1,54 +1,74 @@
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
+import maplibregl from 'maplibre-gl';
+import 'maplibre-gl/dist/maplibre-gl.css';
 import { state } from './state.js';
 import { sanitize, MAX_TRAIL } from './constants.js';
 import { focusMember, cancelFollow, showToast } from './ui.js';
 
-// ─── Inisialisasi peta Leaflet ────────────────────────────────────
-// onDragCancelFollow dipanggil saat user drag peta — memutus follow mode.
-// Dipass sebagai callback untuk menghindari circular import (map ↔ ui).
+// ID helper agar konsisten antara addSource/addLayer dan removeSource/removeLayer
+const SRC  = uid => `trail-src-${uid}`;
+const LYR  = uid => `trail-lyr-${uid}`;
+
+// ─── Inisialisasi peta MapLibre ───────────────────────────────────
 export function initMap(onDragCancelFollow) {
-  state.map = L.map('map', { zoomControl: true, attributionControl: false })
-    .setView([-6.2, 106.8], 5);
+  state.map = new maplibregl.Map({
+    container:          'map',
+    style:              'https://tiles.openfreemap.org/styles/liberty',
+    center:             [106.8, -6.2],   // [lng, lat] — GeoJSON order!
+    zoom:               5,
+    bearing:            0,
+    attributionControl: false,
+  });
 
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-  }).addTo(state.map);
+  // NavigationControl bawaan MapLibre: zoom +/- dan kompas (putar peta)
+  state.map.addControl(
+    new maplibregl.NavigationControl({ showCompass: true }),
+    'top-right',
+  );
 
-  state.mapReady = true;
+  // mapReady = true setelah style selesai dimuat (tile, font, sprite)
+  state.map.on('load', () => {
+    state.mapReady = true;
+    // Re-render anggota yang datanya masuk sebelum style selesai load
+    Object.keys(state.members).forEach(uid => {
+      if (state.members[uid].lat != null) updateMarker(uid);
+    });
+  });
+
   state.map.on('dragstart', onDragCancelFollow);
 }
 
-// ─── Buat ikon lingkaran bernomor untuk marker Leaflet ───────────
-export function markerIcon(number, color, isMe, isSharing = true) {
-  const sz      = isMe ? 28 : 26;
+// ─── Buat elemen HTML untuk marker anggota ───────────────────────
+// Lingkaran bernomor + label nama di atas. anchor:'center' memastikan
+// titik tengah lingkaran tepat di koordinat GPS.
+function createMarkerEl(num, color, isMe, isSharing, name) {
+  const sz      = isMe ? 34 : 26;
   const bgColor = isSharing ? color : '#9ca3af';
+  const opacity = isSharing ? 1 : 0.6;
   const shadow  = isSharing
     ? `0 0 0 2.5px #fff, 0 2px 8px ${color}66`
     : `0 0 0 2.5px #fff, 0 2px 6px rgba(0,0,0,0.18)`;
   const glow    = (isMe && isSharing) ? `, 0 0 0 4px ${color}33` : '';
 
-  return L.divIcon({
-    className: '',
-    html: `<div style="
-      background:${bgColor};
-      width:${sz}px; height:${sz}px;
-      border-radius:50%;
+  const wrap = document.createElement('div');
+  wrap.style.cssText = `position:relative; width:${sz}px; height:${sz}px; cursor:pointer; user-select:none;`;
+  wrap.innerHTML = `
+    <div class="ml-label" style="
+      position:absolute; bottom:calc(100% + 4px); left:50%;
+      transform:translateX(-50%);
+      background:rgba(18,28,28,0.88); color:${color};
+      font-family:'Inter',sans-serif; font-size:0.7rem; font-weight:700;
+      padding:2px 6px; border-radius:5px; white-space:nowrap;
+      pointer-events:none; box-shadow:0 1px 4px rgba(0,0,0,0.25);
+    ">${sanitize(name)}</div>
+    <div class="ml-circle" style="
+      width:${sz}px; height:${sz}px; border-radius:50%;
       display:flex; align-items:center; justify-content:center;
-      box-shadow:${shadow}${glow};
-      color:#fff;
+      background:${bgColor}; color:#fff;
       font-family:'Inter',sans-serif;
-      font-size:${isMe ? '0.88' : '0.72'}rem;
-      font-weight:800;
-      line-height:1;
-      user-select:none;
-      opacity:${isSharing ? 1 : 0.6};
-    ">${number}</div>`,
-    iconSize:     [sz, sz],
-    iconAnchor:   [sz / 2, sz / 2],
-    popupAnchor:  [0, -(sz / 2) - 6],
-    tooltipAnchor:[0, -(sz / 2) - 4],
-  });
+      font-size:${isMe ? '0.88' : '0.72'}rem; font-weight:800; line-height:1;
+      box-shadow:${shadow}${glow}; opacity:${opacity};
+    ">${num}</div>`;
+  return wrap;
 }
 
 // ─── Update atau buat marker + trail untuk satu anggota ──────────
@@ -56,95 +76,106 @@ export function updateMarker(uid) {
   const m = state.members[uid];
   if (!m || m.lat == null || !state.mapReady) return;
 
-  const isSharing  = m.sharing !== false;
-  const num        = state.memberNumbers[uid] || '?';
-  const tooltipHtml = `<span style="color:${m.color};font-weight:700;">${sanitize(m.name)}${m.isMe ? ' ✦' : ''}</span>`;
+  const isSharing = m.sharing !== false;
+  const num       = state.memberNumbers[uid] || '?';
 
-  // ── Marker ──────────────────────────────────────────────────────
+  // ── Marker (MapLibre HTML Marker) ───────────────────────────────
   if (state.markers[uid]) {
-    // Update posisi dan ikon saja (lebih efisien daripada remove+create)
-    state.markers[uid].setLatLng([m.lat, m.lng]);
-    state.markers[uid].setIcon(markerIcon(num, m.color, m.isMe, isSharing));
-    const tip = state.markers[uid].getTooltip();
-    if (tip) state.markers[uid].setTooltipContent(tooltipHtml);
+    // Update posisi
+    state.markers[uid].setLngLat([m.lng, m.lat]);
+
+    // Update elemen HTML secara langsung (lebih ringan dari remove+create)
+    const el     = state.markers[uid].getElement();
+    const circle = el.querySelector('.ml-circle');
+    const label  = el.querySelector('.ml-label');
+    if (circle) {
+      circle.style.background = isSharing ? m.color : '#9ca3af';
+      circle.style.opacity    = isSharing ? '1' : '0.6';
+      circle.textContent      = num;
+    }
+    if (label) {
+      label.style.color = m.color;
+      label.textContent = sanitize(m.name);
+    }
   } else {
-    state.markers[uid] = L.marker([m.lat, m.lng], {
-      icon: markerIcon(num, m.color, m.isMe, isSharing),
-    })
-      .addTo(state.map)
-      .bindTooltip(tooltipHtml, {
-        permanent:  true,
-        direction:  'top',
-        className:  'member-label',
-        offset:     [0, 0],
-      })
-      .on('click', () => focusMember(uid)); // klik marker → aktifkan follow
+    const el = createMarkerEl(num, m.color, m.isMe, isSharing, m.name);
+    el.addEventListener('click', () => focusMember(uid));
+
+    state.markers[uid] = new maplibregl.Marker({ element: el, anchor: 'center' })
+      .setLngLat([m.lng, m.lat])
+      .addTo(state.map);
   }
 
-  // ── Trail ───────────────────────────────────────────────────────
+  // ── Trail (GeoJSON source + line layer) ─────────────────────────
   if (!state.trailPts[uid]) state.trailPts[uid] = [];
   const arr  = state.trailPts[uid];
   const last = arr[arr.length - 1];
-
-  // Tambah titik baru hanya jika posisi berubah
   if (!last || last.lat !== m.lat || last.lng !== m.lng) {
     arr.push({ lat: m.lat, lng: m.lng });
     if (arr.length > MAX_TRAIL) arr.shift();
   }
 
   if (arr.length > 1) {
-    const latlngs = arr.map(p => [p.lat, p.lng]);
-    if (state.trails[uid]) {
-      // FIX: setLatLngs() — update polyline yang ada, bukan remove+create tiap tick.
-      // Menghindari overhead DOM dan garbage collection per update GPS.
-      state.trails[uid].setLatLngs(latlngs);
+    const coords  = arr.map(p => [p.lng, p.lat]); // GeoJSON = [lng, lat]
+    const geojson = { type: 'Feature', geometry: { type: 'LineString', coordinates: coords } };
+
+    if (state.map.getSource(SRC(uid))) {
+      // Update data source yang sudah ada (efisien, tidak re-render layer)
+      state.map.getSource(SRC(uid)).setData(geojson);
     } else {
-      state.trails[uid] = L.polyline(latlngs, {
-        color: m.color, weight: 2, opacity: 0.55, dashArray: '4 7',
-      }).addTo(state.map);
+      // Buat source + layer pertama kali
+      state.map.addSource(SRC(uid), { type: 'geojson', data: geojson });
+      state.map.addLayer({
+        id:     LYR(uid),
+        type:   'line',
+        source: SRC(uid),
+        paint: {
+          'line-color':     m.color,
+          'line-width':     2,
+          'line-opacity':   0.55,
+          'line-dasharray': [2, 3],
+        },
+      });
+      state.trails[uid] = true;
     }
-  } else if (state.trails[uid]) {
-    // Kurang dari 2 titik (misal setelah reset): hapus trail
-    state.map.removeLayer(state.trails[uid]);
-    delete state.trails[uid];
   }
 
   // ── Follow mode ─────────────────────────────────────────────────
-  // Gunakan setView {animate:false} agar marker selalu tepat di tengah.
-  // Skip saat isFollowFlying=true (flyTo awal belum selesai) agar tidak bentrok.
   if (state.followedUid === uid && state.mapReady && !state.isFollowFlying) {
-    state.map.setView([m.lat, m.lng], state.map.getZoom(), { animate: false });
+    state.map.jumpTo({ center: [m.lng, m.lat] });
   }
 }
 
-// ─── Fit peta ke semua anggota yang online ────────────────────────
-// Dipanggil dari tombol mata di floating status panel.
-// Membatalkan follow mode dan menyesuaikan zoom agar semua marker terlihat.
+// ─── Hapus marker + trail satu anggota (saat anggota keluar) ─────
+export function removeMarker(uid) {
+  if (state.markers[uid]) {
+    state.markers[uid].remove();       // MapLibre Marker.remove()
+    delete state.markers[uid];
+  }
+  if (state.trails[uid]) {
+    if (state.map.getLayer(LYR(uid))) state.map.removeLayer(LYR(uid));
+    if (state.map.getSource(SRC(uid))) state.map.removeSource(SRC(uid));
+    delete state.trails[uid];
+  }
+  delete state.trailPts[uid];
+}
+
+// ─── Fit peta ke semua anggota yang online (tombol mata) ─────────
 export function fitAllMembers() {
   if (!state.mapReady) return;
-
   const online = Object.values(state.members)
     .filter(m => m.lat != null && m.sharing !== false);
 
-  if (!online.length) {
-    showToast('📍 Belum ada anggota yang online');
-    return;
-  }
+  if (!online.length) { showToast('📍 Belum ada anggota yang online'); return; }
 
-  // Batalkan follow mode agar peta tidak langsung di-recenter ulang
   if (state.followedUid) cancelFollow();
 
   if (online.length === 1) {
-    // Satu anggota → zoom langsung ke posisinya
-    state.map.setView([online[0].lat, online[0].lng], 15, { animate: true });
+    state.map.flyTo({ center: [online[0].lng, online[0].lat], zoom: 15 });
   } else {
-    // Banyak anggota → fitBounds agar semua marker muat di viewport
-    const bounds = L.latLngBounds(online.map(m => [m.lat, m.lng]));
-    state.map.fitBounds(bounds, {
-      padding:  [60, 60],
-      animate:  true,
-      maxZoom:  16,   // jangan terlalu dekat kalau anggota berkumpul
-    });
+    const bounds = new maplibregl.LngLatBounds();
+    online.forEach(m => bounds.extend([m.lng, m.lat]));
+    state.map.fitBounds(bounds, { padding: 60, maxZoom: 16 });
   }
 
   showToast(`👁️ Menampilkan ${online.length} anggota`);

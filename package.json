@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "firebase": "^10.12.1",
-    "leaflet": "^1.9.4"
+    "maplibre-gl": "^4.7.1"
   },
   "devDependencies": {
     "vite": "^5.4.10"

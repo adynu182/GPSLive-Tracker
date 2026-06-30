@@ -472,9 +472,32 @@
       background: #f0f0f0;
     }
 
-    .leaflet-container {
-      background: #f0f0f0;
+    /* MapLibre: styling NavigationControl (zoom + kompas) agar sesuai tema */
+    .maplibregl-ctrl-group {
+      background: var(--card-bg) !important;
+      border: 1px solid var(--border) !important;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.18) !important;
+      border-radius: 8px !important;
+      overflow: hidden;
     }
+
+    .maplibregl-ctrl-group button {
+      background: transparent !important;
+      color: var(--text) !important;
+      border-bottom: 1px solid var(--border) !important;
+    }
+
+    .maplibregl-ctrl-group button:last-child {
+      border-bottom: none !important;
+    }
+
+    .maplibregl-ctrl-group button:hover {
+      background: var(--bg-light) !important;
+    }
+
+    /* Sembunyikan logo MapLibre (opsional — tetap tampilkan jika ingin credit) */
+    .maplibregl-ctrl-logo { display: none !important; }
+    .maplibregl-ctrl-attrib { display: none !important; }
 
     /* BOTTOM BAR */
     .bottom-bar {
@@ -815,23 +838,15 @@
       border-radius: 4px;
     }
 
-    /* PERMANENT NAME LABEL (Leaflet tooltip permanent) */
-    .member-label {
-      background: rgba(255, 255, 255, 0.96) !important;
-      border: 1px solid rgba(0, 0, 0, 0.08) !important;
-      border-radius: 10px !important;
-      padding: 2px 8px !important;
-      font-family: 'Inter', sans-serif !important;
-      font-size: 0.7rem !important;
-      font-weight: 700 !important;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.13) !important;
-      white-space: nowrap !important;
-      pointer-events: none !important;
+    /* LABEL NAMA ANGGOTA (elemen HTML di dalam MapLibre Marker) */
+    /* Style diapply inline di createMarkerEl() — .ml-label dan .ml-circle */
+    .ml-label {
+      pointer-events: none;
+      white-space: nowrap;
     }
 
-    /* Sembunyikan panah tooltip bawaan Leaflet */
-    .member-label.leaflet-tooltip-top::before {
-      display: none !important;
+    .ml-circle {
+      transition: opacity 0.2s;
     }
 
     /* FOLLOW MODE INDICATOR */

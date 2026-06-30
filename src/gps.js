@@ -43,9 +43,9 @@ function onGPS({ coords: { latitude: lat, longitude: lng, accuracy } }) {
   writeLocation(lat, lng);
   updateDistances();
 
-  // Center peta ke posisi user saat fix pertama
+  // Center peta ke posisi user saat fix pertama — MapLibre: [lng, lat]
   if (state.firstFix && state.mapReady) {
-    state.map.setView([lat, lng], 15);
+    state.map.jumpTo({ center: [lng, lat], zoom: 15 });
     state.firstFix = false;
   }
 }
@@ -83,7 +83,7 @@ function simulateGPS() {
     writeLocation(lat, lng);
     updateDistances();
     if (state.firstFix && state.mapReady) {
-      state.map.setView([lat, lng], 15);
+      state.map.jumpTo({ center: [lng, lat], zoom: 15 });  // MapLibre: [lng, lat]
       state.firstFix = false;
     }
   };

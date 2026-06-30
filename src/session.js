@@ -7,7 +7,7 @@ import { state } from './state.js';
 import { COLORS, FIXED_ROOM, genId, safeColor } from './constants.js';
 import { saveUserData, getDeviceId } from './storage.js';
 import { showToast, showConnectionStatus, renderMembers, updateDistances, cancelFollow } from './ui.js';
-import { initMap, updateMarker } from './map.js';
+import { initMap, updateMarker, removeMarker } from './map.js';
 import { startGPS } from './gps.js';
 
 // ─── Fullscreen ───────────────────────────────────────────────────
@@ -238,10 +238,8 @@ export function startSession() {
       if (!data[uid] && uid !== state.myId) {
         const member = state.members[uid];
         showToast(`${member.emoji || '🧑'} ${member.name || 'Anggota'} keluar`);
-        if (state.markers[uid]) { state.map.removeLayer(state.markers[uid]); delete state.markers[uid]; }
-        if (state.trails[uid])  { state.map.removeLayer(state.trails[uid]);  delete state.trails[uid];  }
+        removeMarker(uid);          // hapus marker + trail + source MapLibre
         delete state.members[uid];
-        delete state.trailPts[uid];
       }
     });
 
