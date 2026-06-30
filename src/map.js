@@ -82,10 +82,8 @@ function createNavArrowEl(color) {
   wrap.innerHTML = `
     <svg viewBox="0 0 40 40" width="40" height="40"
       style="display:block; filter:drop-shadow(0 3px 10px ${color}90);">
-      <!-- Badan panah: tip di atas = arah perjalanan -->
       <path d="M20 3 L35 37 L20 28 L5 37 Z"
         fill="${color}" stroke="white" stroke-width="2.5" stroke-linejoin="round"/>
-      <!-- Titik putih di tengah = posisi GPS persis -->
       <circle cx="20" cy="22" r="5" fill="white" fill-opacity="0.92"/>
     </svg>`;
   return wrap;
@@ -266,6 +264,9 @@ export function toggleLabels() {
 
   showToast(state.showLabels ? '🏷️ Nama ditampilkan' : '🏷️ Nama disembunyikan');
 }
+
+// ─── Fit peta ke semua anggota yang online (tombol mata) ─────────
+export function fitAllMembers() {
   if (!state.mapReady) return;
   const online = Object.values(state.members).filter(m => m.lat != null && m.sharing !== false);
   if (!online.length) { showToast('📍 Belum ada anggota yang online'); return; }
