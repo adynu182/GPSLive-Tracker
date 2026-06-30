@@ -106,6 +106,17 @@
         </div>
         <div class="status-divider"></div>
         <div class="status-item">
+          <!-- Tombol navigasi: aktifkan mode rotate peta + marker segitiga -->
+          <button class="fit-all-btn" id="navModeBtn" onclick="toggleNavMode()" title="Mode navigasi">
+            <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+              fill="none" stroke="currentColor" stroke-width="2.2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="3 11 22 2 13 21 11 13 3 11"/>
+            </svg>
+          </button>
+        </div>
+        <div class="status-divider"></div>
+        <div class="status-item">
           <label class="sharing-toggle">
             <input type="checkbox" id="sharingToggleFloat" checked onchange="toggleSharing(this.checked)">
             <div class="toggle-track"></div>

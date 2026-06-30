@@ -423,6 +423,16 @@
       color: var(--accent);
     }
 
+    /* Saat mode navigasi aktif → tombol menyala penuh */
+    .fit-all-btn.active {
+      color: #fff;
+      background: var(--accent);
+    }
+
+    .fit-all-btn.active:hover {
+      background: var(--accent2);
+    }
+
     .fit-all-btn svg {
       display: block;
       pointer-events: none;

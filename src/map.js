@@ -2,52 +2,53 @@ import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { state } from './state.js';
 import { sanitize, MAX_TRAIL } from './constants.js';
-import { focusMember, cancelFollow, showToast } from './ui.js';
+import { focusMember, cancelFollow, showToast, updateFollowIndicator } from './ui.js';
 
-// ID helper agar konsisten antara addSource/addLayer dan removeSource/removeLayer
-const SRC  = uid => `trail-src-${uid}`;
-const LYR  = uid => `trail-lyr-${uid}`;
+const SRC = uid => `trail-src-${uid}`;
+const LYR = uid => `trail-lyr-${uid}`;
 
 // ─── Inisialisasi peta MapLibre ───────────────────────────────────
 export function initMap(onDragCancelFollow) {
   state.map = new maplibregl.Map({
     container:          'map',
     style:              'https://tiles.openfreemap.org/styles/liberty',
-    center:             [106.8, -6.2],   // [lng, lat] — GeoJSON order!
+    center:             [106.8, -6.2],
     zoom:               5,
     bearing:            0,
     attributionControl: false,
   });
 
-  // NavigationControl bawaan MapLibre: zoom +/- dan kompas (putar peta)
   state.map.addControl(
     new maplibregl.NavigationControl({ showCompass: true }),
     'top-right',
   );
 
-  // mapReady = true setelah style selesai dimuat (tile, font, sprite)
   state.map.on('load', () => {
     state.mapReady = true;
-    // Re-render anggota yang datanya masuk sebelum style selesai load
     Object.keys(state.members).forEach(uid => {
       if (state.members[uid].lat != null) updateMarker(uid);
     });
   });
 
-  state.map.on('dragstart', onDragCancelFollow);
+  state.map.on('dragstart', () => {
+    // Matikan nav mode saat user drag peta secara manual
+    if (state.navMode) {
+      _deactivateNavMode();
+      showToast('🧭 Mode navigasi dimatikan');
+    }
+    onDragCancelFollow();
+  });
 }
 
-// ─── Buat elemen HTML untuk marker anggota ───────────────────────
-// Lingkaran bernomor + label nama di atas. anchor:'center' memastikan
-// titik tengah lingkaran tepat di koordinat GPS.
-function createMarkerEl(num, color, isMe, isSharing, name) {
+// ─── Elemen HTML marker lingkaran bernomor (anggota biasa) ────────
+function createCircleEl(num, color, isMe, isSharing, name) {
   const sz      = isMe ? 34 : 26;
   const bgColor = isSharing ? color : '#9ca3af';
   const opacity = isSharing ? 1 : 0.6;
   const shadow  = isSharing
     ? `0 0 0 2.5px #fff, 0 2px 8px ${color}66`
     : `0 0 0 2.5px #fff, 0 2px 6px rgba(0,0,0,0.18)`;
-  const glow    = (isMe && isSharing) ? `, 0 0 0 4px ${color}33` : '';
+  const glow = (isMe && isSharing) ? `, 0 0 0 4px ${color}33` : '';
 
   const wrap = document.createElement('div');
   wrap.style.cssText = `position:relative; width:${sz}px; height:${sz}px; cursor:pointer; user-select:none;`;
@@ -71,37 +72,67 @@ function createMarkerEl(num, color, isMe, isSharing, name) {
   return wrap;
 }
 
-// ─── Update atau buat marker + trail untuk satu anggota ──────────
+// ─── Elemen HTML marker navigasi segitiga (hanya untuk diri sendiri) ──
+// Panah selalu menunjuk ke ATAS layar = arah perjalanan,
+// karena peta yang berputar mengikuti heading, bukan marker-nya.
+// rotationAlignment:'viewport' memastikan marker tegak meski peta berputar.
+function createNavArrowEl(color) {
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'position:relative; width:40px; height:40px; cursor:pointer; user-select:none;';
+  wrap.innerHTML = `
+    <svg viewBox="0 0 40 40" width="40" height="40"
+      style="display:block; filter:drop-shadow(0 3px 10px ${color}90);">
+      <!-- Badan panah: tip di atas = arah perjalanan -->
+      <path d="M20 3 L35 37 L20 28 L5 37 Z"
+        fill="${color}" stroke="white" stroke-width="2.5" stroke-linejoin="round"/>
+      <!-- Titik putih di tengah = posisi GPS persis -->
+      <circle cx="20" cy="22" r="5" fill="white" fill-opacity="0.92"/>
+    </svg>`;
+  return wrap;
+}
+
+// ─── Update atau buat marker + trail satu anggota ─────────────────
 export function updateMarker(uid) {
   const m = state.members[uid];
   if (!m || m.lat == null || !state.mapReady) return;
 
   const isSharing = m.sharing !== false;
   const num       = state.memberNumbers[uid] || '?';
+  const isNavSelf = uid === state.myId && state.navMode;
 
-  // ── Marker (MapLibre HTML Marker) ───────────────────────────────
+  // ── Marker ──────────────────────────────────────────────────────
   if (state.markers[uid]) {
-    // Update posisi
     state.markers[uid].setLngLat([m.lng, m.lat]);
 
-    // Update elemen HTML secara langsung (lebih ringan dari remove+create)
-    const el     = state.markers[uid].getElement();
-    const circle = el.querySelector('.ml-circle');
-    const label  = el.querySelector('.ml-label');
-    if (circle) {
-      circle.style.background = isSharing ? m.color : '#9ca3af';
-      circle.style.opacity    = isSharing ? '1' : '0.6';
-      circle.textContent      = num;
+    if (!isNavSelf) {
+      // Update lingkaran bernomor
+      const el     = state.markers[uid].getElement();
+      const circle = el.querySelector('.ml-circle');
+      const label  = el.querySelector('.ml-label');
+      if (circle) {
+        circle.style.background = isSharing ? m.color : '#9ca3af';
+        circle.style.opacity    = isSharing ? '1' : '0.6';
+        circle.textContent      = num;
+      }
+      if (label) {
+        label.style.color = m.color;
+        label.textContent = sanitize(m.name);
+      }
     }
-    if (label) {
-      label.style.color = m.color;
-      label.textContent = sanitize(m.name);
-    }
-  } else {
-    const el = createMarkerEl(num, m.color, m.isMe, isSharing, m.name);
-    el.addEventListener('click', () => focusMember(uid));
+    // Marker segitiga tidak perlu di-update kontennya (warna sudah tetap)
 
-    state.markers[uid] = new maplibregl.Marker({ element: el, anchor: 'center' })
+  } else {
+    // Buat marker baru
+    let el;
+    if (isNavSelf) {
+      el = createNavArrowEl(m.color);
+    } else {
+      el = createCircleEl(num, m.color, m.isMe, isSharing, m.name);
+      el.addEventListener('click', () => focusMember(uid));
+    }
+
+    // rotationAlignment:'viewport' → marker tegak meski peta berputar saat nav mode
+    state.markers[uid] = new maplibregl.Marker({ element: el, anchor: 'center', rotationAlignment: 'viewport' })
       .setLngLat([m.lng, m.lat])
       .addTo(state.map);
   }
@@ -116,42 +147,104 @@ export function updateMarker(uid) {
   }
 
   if (arr.length > 1) {
-    const coords  = arr.map(p => [p.lng, p.lat]); // GeoJSON = [lng, lat]
+    const coords  = arr.map(p => [p.lng, p.lat]);
     const geojson = { type: 'Feature', geometry: { type: 'LineString', coordinates: coords } };
-
     if (state.map.getSource(SRC(uid))) {
-      // Update data source yang sudah ada (efisien, tidak re-render layer)
       state.map.getSource(SRC(uid)).setData(geojson);
     } else {
-      // Buat source + layer pertama kali
       state.map.addSource(SRC(uid), { type: 'geojson', data: geojson });
       state.map.addLayer({
-        id:     LYR(uid),
-        type:   'line',
-        source: SRC(uid),
-        paint: {
-          'line-color':     m.color,
-          'line-width':     2,
-          'line-opacity':   0.55,
-          'line-dasharray': [2, 3],
-        },
+        id: LYR(uid), type: 'line', source: SRC(uid),
+        paint: { 'line-color': m.color, 'line-width': 2, 'line-opacity': 0.55, 'line-dasharray': [2, 3] },
       });
       state.trails[uid] = true;
     }
   }
 
-  // ── Follow mode ─────────────────────────────────────────────────
-  if (state.followedUid === uid && state.mapReady && !state.isFollowFlying) {
+  // ── Kamera: follow + rotate ──────────────────────────────────────
+  _updateCamera(uid, m);
+}
+
+// ─── Update kamera (pan, bearing, pitch) sesuai mode ─────────────
+function _updateCamera(uid, m) {
+  if (!state.mapReady || state.isFollowFlying) return;
+
+  const isNavSelf     = uid === state.myId && state.navMode;
+  const isFollowingMe = state.followedUid === uid;
+
+  if (!isNavSelf && !isFollowingMe) return;
+
+  if (isNavSelf && state.myHeading != null && state.mySpeed > 0.3) {
+    // ── Mode navigasi: peta berputar mengikuti heading ───────────
+    // easeTo membuat transisi smooth antar tiap GPS tick.
+    // Marker segitiga di-set rotationAlignment:'viewport' sehingga
+    // selalu menunjuk ke atas layar = arah perjalanan.
+    state.map.easeTo({
+      center:   [m.lng, m.lat],
+      bearing:  state.myHeading,
+      pitch:    45,          // sedikit tilt seperti Google Maps navigasi
+      zoom:     state.map.getZoom() < 15 ? 16 : state.map.getZoom(),
+      duration: 600,
+    });
+  } else if (isNavSelf || isFollowingMe) {
+    // Diam atau follow normal: hanya pan, tidak rotate
     state.map.jumpTo({ center: [m.lng, m.lat] });
   }
 }
 
-// ─── Hapus marker + trail satu anggota (saat anggota keluar) ─────
-export function removeMarker(uid) {
-  if (state.markers[uid]) {
-    state.markers[uid].remove();       // MapLibre Marker.remove()
-    delete state.markers[uid];
+// ─── Toggle mode navigasi ─────────────────────────────────────────
+export function toggleNavMode() {
+  if (!state.mapReady) { showToast('⚠️ Peta belum siap'); return; }
+  if (state.myLat == null) { showToast('📍 Tunggu GPS mendapat sinyal dulu'); return; }
+
+  if (state.navMode) {
+    _deactivateNavMode();
+    showToast('🧭 Mode navigasi nonaktif');
+  } else {
+    _activateNavMode();
+    showToast('🧭 Mode navigasi aktif — peta mengikuti arah jalan');
   }
+
+  // Sync tampilan tombol
+  const btn = document.getElementById('navModeBtn');
+  if (btn) btn.classList.toggle('active', state.navMode);
+}
+
+function _activateNavMode() {
+  // Batalkan follow mode lain agar tidak bentrok
+  if (state.followedUid && state.followedUid !== state.myId) cancelFollow();
+
+  state.navMode = true;
+
+  // Ganti marker lingkaran → segitiga (hanya lokal, tidak dikirim ke Firebase)
+  if (state.markers[state.myId]) {
+    state.markers[state.myId].remove();
+    delete state.markers[state.myId];
+  }
+  // updateMarker akan buat marker segitiga baru (isNavSelf = true)
+  if (state.members[state.myId]) updateMarker(state.myId);
+}
+
+function _deactivateNavMode() {
+  state.navMode = false;
+
+  // Ganti marker segitiga → lingkaran kembali
+  if (state.markers[state.myId]) {
+    state.markers[state.myId].remove();
+    delete state.markers[state.myId];
+  }
+  if (state.members[state.myId]) updateMarker(state.myId);
+
+  // Reset bearing dan pitch ke posisi normal
+  state.map.easeTo({ bearing: 0, pitch: 0, duration: 700 });
+
+  // Sembunyikan follow indicator jika sedang follow diri sendiri
+  updateFollowIndicator();
+}
+
+// ─── Hapus marker + trail satu anggota ───────────────────────────
+export function removeMarker(uid) {
+  if (state.markers[uid]) { state.markers[uid].remove(); delete state.markers[uid]; }
   if (state.trails[uid]) {
     if (state.map.getLayer(LYR(uid))) state.map.removeLayer(LYR(uid));
     if (state.map.getSource(SRC(uid))) state.map.removeSource(SRC(uid));
@@ -163,11 +256,10 @@ export function removeMarker(uid) {
 // ─── Fit peta ke semua anggota yang online (tombol mata) ─────────
 export function fitAllMembers() {
   if (!state.mapReady) return;
-  const online = Object.values(state.members)
-    .filter(m => m.lat != null && m.sharing !== false);
-
+  const online = Object.values(state.members).filter(m => m.lat != null && m.sharing !== false);
   if (!online.length) { showToast('📍 Belum ada anggota yang online'); return; }
 
+  if (state.navMode) { _deactivateNavMode(); }
   if (state.followedUid) cancelFollow();
 
   if (online.length === 1) {
@@ -177,6 +269,5 @@ export function fitAllMembers() {
     online.forEach(m => bounds.extend([m.lng, m.lat]));
     state.map.fitBounds(bounds, { padding: 60, maxZoom: 16 });
   }
-
   showToast(`👁️ Menampilkan ${online.length} anggota`);
 }

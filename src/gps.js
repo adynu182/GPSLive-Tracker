@@ -21,9 +21,16 @@ export function startGPS() {
 }
 
 // ─── Callback berhasil dapat koordinat ───────────────────────────
-function onGPS({ coords: { latitude: lat, longitude: lng, accuracy } }) {
-  state.myLat = lat;
-  state.myLng = lng;
+function onGPS({ coords: { latitude: lat, longitude: lng, accuracy, heading, speed } }) {
+  state.myLat   = lat;
+  state.myLng   = lng;
+  state.mySpeed = speed ?? 0;
+
+  // Heading dari GPS valid hanya saat bergerak (speed > 0.3 m/s ≈ 1 km/h).
+  // Saat diam, pertahankan heading terakhir agar peta tidak reset ke Utara.
+  if (heading != null && state.mySpeed > 0.3) {
+    state.myHeading = heading;
+  }
 
   // Update accuracy bar UI
   const pct    = Math.max(0, Math.min(100, 100 - Math.log(accuracy) * 14));
@@ -64,6 +71,7 @@ function onGPSErr(err) {
 function simulateGPS() {
   let lat = -6.2 + (Math.random() - 0.5) * 0.02;
   let lng = 106.8 + (Math.random() - 0.5) * 0.02;
+  let prevLat = null, prevLng = null;
 
   document.getElementById('accuracyValue').textContent = 'Mode Demo';
   document.getElementById('accuracyLabel').textContent = 'Mode Demo';
@@ -72,8 +80,20 @@ function simulateGPS() {
 
   const tick = () => {
     if (!state.sharingOn) return;
+
+    prevLat = lat; prevLng = lng;
     lat += (Math.random() - 0.5) * 0.0004;
     lng += (Math.random() - 0.5) * 0.0004;
+
+    // Hitung heading dari selisih posisi (bearing titik A → B)
+    if (prevLat != null) {
+      const dLng  = lng - prevLng;
+      const dLat  = lat - prevLat;
+      const angle = Math.atan2(dLng, dLat) * (180 / Math.PI);
+      state.myHeading = (angle + 360) % 360;
+      state.mySpeed   = 0.8; // simulasikan sedang berjalan pelan
+    }
+
     state.myLat = lat;
     state.myLng = lng;
     if (state.members[state.myId]) {
@@ -83,7 +103,7 @@ function simulateGPS() {
     writeLocation(lat, lng);
     updateDistances();
     if (state.firstFix && state.mapReady) {
-      state.map.jumpTo({ center: [lng, lat], zoom: 15 });  // MapLibre: [lng, lat]
+      state.map.jumpTo({ center: [lng, lat], zoom: 15 });
       state.firstFix = false;
     }
   };
