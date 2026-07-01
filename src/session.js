@@ -26,7 +26,8 @@ export function enterFullscreen() {
   }
 }
 
-// Sembunyikan/tampilkan tombol ⛶ sesuai status fullscreen saat ini.
+// Sembunyikan tombol fullscreen saat sudah dalam mode fullscreen.
+// Tombol kini berada di toolbar bawah, bukan absolut di atas peta.
 export function syncFullscreenBtn() {
   const inFS = !!(
     document.fullscreenElement
@@ -198,9 +199,8 @@ export function startSession() {
   u.searchParams.set('room', state.roomId);
   history.replaceState({}, '', u);
 
-  document.getElementById('logoutBtn').style.display = 'flex';
+  document.getElementById('mainToolbar').style.display = 'flex'; // tampilkan toolbar bawah
   syncFullscreenBtn();
-  document.getElementById('floatingStatus').style.display = 'flex';
 
   // Init peta dengan callback drag (batalkan follow saat user geser peta)
   initMap(() => {

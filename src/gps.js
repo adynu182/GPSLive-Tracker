@@ -32,13 +32,17 @@ function onGPS({ coords: { latitude: lat, longitude: lng, accuracy, heading, spe
     state.myHeading = heading;
   }
 
-  // Update accuracy bar UI
+  // Update GPS accuracy di toolbar
   const pct    = Math.max(0, Math.min(100, 100 - Math.log(accuracy) * 14));
   const accStr = `±${Math.round(accuracy)} m`;
-  document.getElementById('accuracyValue').textContent = accStr;
-  document.getElementById('accuracyLabel').textContent = accStr;
-  const fill = document.querySelector('.accuracy-fill');
-  if (fill) fill.style.width = pct + '%';
+  const valEl  = document.getElementById('accuracyValue');
+  if (valEl) valEl.textContent = accStr;
+
+  // Warna dot GPS sesuai kualitas akurasi
+  const dot = document.getElementById('gpsDot');
+  if (dot) {
+    dot.className = 'gps-dot ' + (accuracy < 20 ? 'good' : accuracy < 60 ? 'medium' : 'poor');
+  }
 
   if (!state.sharingOn) return;
 
@@ -59,9 +63,11 @@ function onGPS({ coords: { latitude: lat, longitude: lng, accuracy, heading, spe
 
 // ─── Callback error GPS ───────────────────────────────────────────
 function onGPSErr(err) {
-  // Error code 1 = PERMISSION_DENIED → fallback ke mode demo
   if (err.code === 1) {
-    document.getElementById('accuracyValue').textContent = 'GPS diblokir';
+    const valEl = document.getElementById('accuracyValue');
+    if (valEl) valEl.textContent = 'Diblokir';
+    const dot = document.getElementById('gpsDot');
+    if (dot) dot.className = 'gps-dot poor';
     simulateGPS();
   }
 }
@@ -73,10 +79,10 @@ function simulateGPS() {
   let lng = 106.8 + (Math.random() - 0.5) * 0.02;
   let prevLat = null, prevLng = null;
 
-  document.getElementById('accuracyValue').textContent = 'Mode Demo';
-  document.getElementById('accuracyLabel').textContent = 'Mode Demo';
-  const fill = document.querySelector('.accuracy-fill');
-  if (fill) fill.style.width = '60%';
+  const valEl = document.getElementById('accuracyValue');
+  if (valEl) valEl.textContent = 'Demo';
+  const dot = document.getElementById('gpsDot');
+  if (dot) dot.className = 'gps-dot medium';
 
   const tick = () => {
     if (!state.sharingOn) return;
@@ -118,14 +124,21 @@ export function toggleSharing(on) {
   state.sharingOn = on;
   writeSharing(on);
 
-  // Sync kedua toggle (sidebar dan floating panel)
-  document.getElementById('sharingToggle').checked      = on;
-  document.getElementById('sharingToggleFloat').checked = on;
+  // Sync toggle
+  const t = document.getElementById('sharingToggleFloat');
+  if (t) t.checked = on;
+
+  // Update label teks di toolbar
+  const lbl = document.getElementById('sharingLabel');
+  if (lbl) {
+    lbl.textContent = on ? 'Online' : 'Offline';
+    lbl.className   = 'tb-toggle-label ' + (on ? 'sharing-on' : 'sharing-off');
+  }
 
   showToast(on ? '📡 Berbagi lokasi aktif' : '🔇 Lokasi disembunyikan');
 
   if (state.myId && state.members[state.myId]) {
     state.members[state.myId].sharing = on;
-    updateMarker(state.myId); // update tampilan marker (abu-abu saat off)
+    updateMarker(state.myId);
   }
 }

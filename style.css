@@ -94,34 +94,7 @@
       transform: translateY(-1px);
     }
 
-    .logout-btn {
-      position: fixed;
-      bottom: 20px;
-      right: 14px;
-      z-index: 1000;
-      background: var(--danger-color);
-      color: var(--bg-light);
-      border: none;
-      border-radius: 30px;
-      padding: 10px 18px;
-      font-family: 'Inter', sans-serif;
-      font-weight: 700;
-      font-size: 0.8rem;
-      cursor: pointer;
-      display: none;
-      /* Controlled by JS as flex/none */
-      align-items: center;
-      gap: 6px;
-      white-space: nowrap;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-      transition: all .2s;
-    }
-
-    .logout-btn:hover {
-      background: #c62626;
-      transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
-    }
+    /* ── MAIN TOOLBAR (replaces floating-status + logout-btn) ────── */
 
     /* LAYOUT */
     .main {
@@ -290,49 +263,7 @@
       color: var(--accent-color);
     }
 
-    /* FLOATING STATUS PANEL */
-    .floating-status {
-      position: absolute;
-      bottom: 20px;
-      left: 14px;
-      z-index: 500;
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 12px 14px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      display: flex;
-      flex-direction: row;
-      gap: 16px;
-      align-items: center;
-      min-width: auto;
-    }
 
-    .status-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-    }
-
-    .status-info {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-
-    .accuracy-label {
-      font-size: 0.78rem;
-      font-weight: 600;
-      color: var(--text);
-      white-space: nowrap;
-    }
-
-    .accuracy-value {
-      font-size: 0.72rem;
-      color: var(--muted);
-      white-space: nowrap;
-    }
 
     .sharing-toggle {
       position: relative;
@@ -377,104 +308,7 @@
       transform: translateX(26px);
     }
 
-    .toggle-label {
-      font-size: 0.8rem;
-      color: var(--muted);
-      font-weight: 600;
-    }
 
-    /* ── Pemisah vertikal di dalam floating status panel ── */
-    .status-divider {
-      width: 1px;
-      height: 22px;
-      background: var(--border);
-      flex-shrink: 0;
-    }
-
-    /* ── Tombol mata: zoom ke semua anggota online ─────── */
-    .fit-all-btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 30px;
-      height: 30px;
-      padding: 0;
-      border: none;
-      border-radius: 8px;
-      background: transparent;
-      color: var(--muted);
-      cursor: pointer;
-      flex-shrink: 0;
-      transition: background 0.18s, color 0.18s, transform 0.12s;
-    }
-
-    .fit-all-btn:hover {
-      background: rgba(36, 112, 102, 0.14);
-      color: var(--accent);
-      transform: scale(1.12);
-    }
-
-    .fit-all-btn:active {
-      transform: scale(0.92);
-    }
-
-    /* Saat ada anggota online yang bisa dilihat → highlight ikon */
-    .fit-all-btn.has-members {
-      color: var(--accent);
-    }
-
-    /* Saat mode navigasi aktif → tombol menyala penuh */
-    .fit-all-btn.active {
-      color: #fff;
-      background: var(--accent);
-    }
-
-    .fit-all-btn.active:hover {
-      background: var(--accent2);
-    }
-
-    .fit-all-btn svg {
-      display: block;
-      pointer-events: none;
-    }
-
-    /* SIDEBAR STATUS (HIDDEN ON DESKTOP, SHOWN ON MOBILE) */
-    .my-status {
-      padding: 10px 14px;
-      border-top: 1px solid var(--border);
-      background: var(--card-bg);
-      display: none;
-    }
-
-    .my-status-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 7px;
-    }
-
-    .status-label {
-      font-size: 0.67rem;
-      color: var(--muted);
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      font-weight: 700;
-    }
-
-    .accuracy-bar {
-      height: 3px;
-      background: var(--border);
-      border-radius: 3px;
-      overflow: hidden;
-    }
-
-    .accuracy-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--accent2), var(--accent3));
-      border-radius: 3px;
-      width: 0%;
-      transition: width .5s;
-    }
 
     /* MAP */
     #map {
@@ -903,27 +737,7 @@
       color: var(--danger-color);
     }
 
-    /* ── Fullscreen re-entry button ── */
-    #fullscreenBtn {
-      display: none;          /* hanya tampil saat keluar fullscreen & sudah login */
-      position: absolute;
-      bottom: 20px;
-      right: 14px;
-      z-index: 500;
-      width: 36px;
-      height: 36px;
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      cursor: pointer;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-      font-size: 1rem;
-      line-height: 1;
-      transition: background .2s, transform .15s;
-      align-items: center;
-      justify-content: center;
-    }
-    #fullscreenBtn:hover { background: var(--bg-light); transform: scale(1.08); }
+
 
     /* ── Connection status badge ── */
     #connectionBadge {
@@ -990,20 +804,6 @@
         font-size: 0.7rem;
       }
 
-      .floating-status {
-        bottom: 14px;
-        left: 10px;
-        padding: 10px 12px;
-        gap: 12px;
-      }
-
-      .accuracy-label {
-        font-size: 0.82rem;
-      }
-
-      .accuracy-value {
-        font-size: 0.72rem;
-      }
     }
 
     @media(max-width:480px) {
@@ -1036,22 +836,114 @@
         font-size: 0.65rem;
       }
 
-      .floating-status {
-        bottom: 12px;
-        left: 8px;
-        padding: 8px 10px;
-        gap: 10px;
-      }
-
-      .accuracy-label {
-        font-size: 0.78rem;
-      }
-
-      .accuracy-value {
-        font-size: 0.68rem;
-      }
-
-      .status-item {
-        gap: 6px;
-      }
     }
+
+    /* ──────────────────────────────────────────────────────────────── */
+    /* MAIN TOOLBAR STYLES                                              */
+    /* ──────────────────────────────────────────────────────────────── */
+
+    .main-toolbar {
+      display: flex;
+      align-items: center;
+      height: 62px;
+      background: var(--card-bg);
+      border-top: 1px solid var(--border);
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.06);
+      flex-shrink: 0;
+      padding: 0 14px;
+      gap: 0;
+      z-index: 600;
+      position: relative;
+    }
+
+    .tb-group { display: flex; align-items: center; gap: 4px; }
+    .tb-actions { flex: 1; justify-content: center; gap: 2px; }
+    .tb-right { gap: 8px; }
+    .tb-sep { width: 1px; height: 30px; background: var(--border); flex-shrink: 0; margin: 0 12px; }
+
+    /* GPS badge */
+    .gps-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg-light);
+      border-radius: 10px;
+      padding: 7px 11px;
+    }
+    .gps-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #9ca3af; flex-shrink: 0; transition: background 0.4s;
+    }
+    .gps-dot.good   { background: var(--online);       animation: pulse-gps 2.4s ease-in-out infinite; }
+    .gps-dot.medium { background: #f59e0b;              animation: pulse-gps 1.8s ease-in-out infinite; }
+    .gps-dot.poor   { background: var(--danger-color); }
+    @keyframes pulse-gps { 0%,100%{opacity:1} 50%{opacity:.5} }
+
+    .gps-info { display: flex; flex-direction: column; gap: 1px; line-height: 1; }
+    .gps-label {
+      font-size: 0.58rem; font-weight: 700; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.8px;
+    }
+    .gps-val {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.72rem; font-weight: 700; color: var(--text); white-space: nowrap;
+    }
+
+    /* Toolbar action buttons */
+    .tb-btn {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 3px;
+      width: 56px; height: 48px;
+      border: none; border-radius: 10px;
+      background: transparent; color: var(--muted);
+      cursor: pointer; flex-shrink: 0;
+      transition: background 0.18s, color 0.18s, transform 0.12s;
+      padding: 0;
+    }
+    .tb-btn-label {
+      font-size: 0.52rem; font-weight: 600;
+      letter-spacing: 0.2px; white-space: nowrap; pointer-events: none;
+    }
+    .tb-btn:hover  { background: rgba(24,122,125,0.1); color: var(--accent); }
+    .tb-btn:active { transform: scale(0.92); }
+    .tb-btn.active { background: var(--accent); color: #fff; }
+    .tb-btn.active:hover { background: var(--accent2); }
+    .tb-btn.has-members { color: var(--accent); }
+
+    /* Sharing toggle */
+    .tb-toggle-wrap { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+    .tb-toggle-label {
+      font-size: 0.58rem; font-weight: 700; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.8px; transition: color 0.2s;
+    }
+    .tb-toggle-label.sharing-on  { color: var(--online); }
+    .tb-toggle-label.sharing-off { color: var(--muted); }
+
+    /* Logout button */
+    .tb-logout-btn {
+      display: flex; align-items: center; justify-content: center;
+      width: 38px; height: 38px;
+      border: 1.5px solid rgba(222,55,55,0.25); border-radius: 10px;
+      background: rgba(222,55,55,0.06); color: var(--danger-color);
+      cursor: pointer; flex-shrink: 0; transition: all 0.18s;
+    }
+    .tb-logout-btn:hover {
+      background: var(--danger-color); border-color: var(--danger-color);
+      color: #fff; transform: scale(1.08);
+    }
+    .tb-logout-btn:active { transform: scale(0.92); }
+
+    /* Bottom bar placeholder */
+    .bottom-bar-placeholder { color: var(--muted); font-size: 0.75rem; }
+
+    /* Responsive toolbar */
+    @media(max-width:480px) {
+      .main-toolbar { padding: 0 10px; height: 58px; }
+      .tb-sep { margin: 0 8px; }
+      .tb-btn { width: 46px; height: 44px; }
+      .tb-btn-label { display: none; }
+      .gps-badge { padding: 6px 8px; gap: 6px; }
+      .gps-val { font-size: 0.68rem; }
+      .gps-dot { width: 7px; height: 7px; }
+    }
+
