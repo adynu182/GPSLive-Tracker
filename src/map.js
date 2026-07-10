@@ -42,12 +42,12 @@ export function initMap(onDragCancelFollow) {
 
 // ─── Elemen HTML marker lingkaran bernomor (anggota biasa) ────────
 function createCircleEl(num, color, isMe, isSharing, name) {
-  const sz      = isMe ? 34 : 26;
+  const sz      = isMe ? 26 : 24;
   const bgColor = isSharing ? color : '#9ca3af';
   const opacity = isSharing ? 1 : 0.6;
   const shadow  = isSharing
-    ? `0 0 0 2.5px #fff, 0 2px 8px ${color}66`
-    : `0 0 0 2.5px #fff, 0 2px 6px rgba(0,0,0,0.18)`;
+    ? `0 0 0 2px #fff, 0 2px 6px ${color}66`
+    : `0 0 0 2px #fff, 0 2px 4px rgba(0,0,0,0.18)`;
   const glow = (isMe && isSharing) ? `, 0 0 0 4px ${color}33` : '';
 
   const wrap = document.createElement('div');
