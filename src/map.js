@@ -20,8 +20,28 @@ export function initMap(onDragCancelFollow) {
 
   state.map.addControl(
     new maplibregl.NavigationControl({ showCompass: true }),
-    'top-right',
+    'bottom-left',
   );
+
+  // Gabungkan tombol mode navigasi ke dalam grup kontrol yang sama (zoom + kompas).
+  // Dicari lewat class korner resmi MapLibre (bukan properti privat controller)
+  // supaya tidak bergantung pada detail internal library.
+  const ctrlGroup = document.querySelector('#map .maplibregl-ctrl-bottom-left .maplibregl-ctrl-group');
+  if (ctrlGroup) {
+    const navBtn = document.createElement('button');
+    navBtn.type = 'button';
+    navBtn.id   = 'navModeBtn';
+    navBtn.title = 'Mode navigasi';
+    navBtn.setAttribute('aria-label', 'Mode navigasi');
+    navBtn.innerHTML = `
+      <span class="nav-mode-icon" aria-hidden="true">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="3 11 22 2 13 21 11 13 3 11"/>
+        </svg>
+      </span>`;
+    navBtn.addEventListener('click', toggleNavMode);
+    ctrlGroup.appendChild(navBtn);
+  }
 
   state.map.on('load', () => {
     state.mapReady = true;

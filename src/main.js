@@ -8,7 +8,7 @@ import {
 } from './session.js';
 import { toggleSharing } from './gps.js';
 import { toggleMembersList, cancelFollow, focusMember, showToast } from './ui.js';
-import { fitAllMembers, toggleNavMode, toggleLabels } from './map.js';
+import { fitAllMembers, toggleLabels } from './map.js';
 import { db } from '../firebase-config.js';
 import { ref, get } from 'firebase/database';
 
@@ -44,7 +44,6 @@ window.toggleSharing     = toggleSharing;
 window.enterFullscreen   = enterFullscreen;
 window.focusMember       = focusMember;
 window.fitAllMembers     = fitAllMembers;
-window.toggleNavMode     = toggleNavMode;
 window.toggleLabels      = toggleLabels;   // ← hide/show nama marker
 
 // ─── Fullscreen change listeners ─────────────────────────────────
