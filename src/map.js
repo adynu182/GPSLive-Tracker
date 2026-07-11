@@ -34,13 +34,30 @@ export function initMap(onDragCancelFollow) {
     navBtn.title = 'Mode navigasi';
     navBtn.setAttribute('aria-label', 'Mode navigasi');
     navBtn.innerHTML = `
-      <span class="nav-mode-icon" aria-hidden="true">
+      <span class="ctrl-custom-icon" aria-hidden="true">
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
           <polygon points="3 11 22 2 13 21 11 13 3 11"/>
         </svg>
       </span>`;
     navBtn.addEventListener('click', toggleNavMode);
     ctrlGroup.appendChild(navBtn);
+
+    // Tombol gedung 3D (fill-extrusion sudah tersedia di style Liberty,
+    // tinggal di-tilt supaya kelihatan). Digabung di grup yang sama.
+    const buildingsBtn = document.createElement('button');
+    buildingsBtn.type = 'button';
+    buildingsBtn.id   = 'buildings3DBtn';
+    buildingsBtn.title = 'Gedung 3D';
+    buildingsBtn.setAttribute('aria-label', 'Tampilkan gedung 3D');
+    buildingsBtn.innerHTML = `
+      <span class="ctrl-custom-icon" aria-hidden="true">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3 20 7.5 20 16.5 12 21 4 16.5 4 7.5 Z"/>
+          <path d="M12 12 20 7.5 M12 12 4 7.5 M12 12 12 21"/>
+        </svg>
+      </span>`;
+    buildingsBtn.addEventListener('click', toggle3DBuildings);
+    ctrlGroup.appendChild(buildingsBtn);
   }
 
   state.map.on('load', () => {
@@ -228,11 +245,41 @@ export function toggleNavMode() {
   if (btn) btn.classList.toggle('active', state.navMode);
 }
 
+// ─── Toggle gedung 3D (tilt kamera; fill-extrusion sudah ada di style Liberty) ──
+export function toggle3DBuildings() {
+  if (!state.mapReady) { showToast('⚠️ Peta belum siap'); return; }
+
+  // Saat nav mode aktif, pitch sudah dikendalikan otomatis tiap GPS tick
+  // (lihat _updateCamera) — jangan diperebutkan, cukup kasih tahu user.
+  if (state.navMode) {
+    showToast('🧭 Tilt 3D mengikuti mode navigasi saat ini');
+    return;
+  }
+
+  state.buildings3D = !state.buildings3D;
+  state.map.easeTo({ pitch: state.buildings3D ? 45 : 0, duration: 600 });
+
+  if (state.buildings3D && state.map.getZoom() < 14) {
+    showToast('🏙️ Gedung 3D aktif — zoom in lagi supaya kelihatan');
+  } else {
+    showToast(state.buildings3D ? '🏙️ Gedung 3D aktif' : '🏙️ Gedung 3D nonaktif');
+  }
+
+  const btn3d = document.getElementById('buildings3DBtn');
+  if (btn3d) btn3d.classList.toggle('active', state.buildings3D);
+}
+
 function _activateNavMode() {
   // Batalkan follow mode lain agar tidak bentrok
   if (state.followedUid && state.followedUid !== state.myId) cancelFollow();
 
   state.navMode = true;
+
+  // Nav mode akan tilt kamera ke 45° tiap GPS tick — sinkronkan tombol 3D
+  // supaya statusnya akurat (bukan toggle terpisah yg bisa saling menimpa).
+  state.buildings3D = true;
+  const btn3d = document.getElementById('buildings3DBtn');
+  if (btn3d) btn3d.classList.add('active');
 
   // Ganti marker lingkaran → segitiga (hanya lokal, tidak dikirim ke Firebase)
   if (state.markers[state.myId]) {
@@ -255,6 +302,10 @@ function _deactivateNavMode() {
 
   // Reset bearing dan pitch ke posisi normal
   state.map.easeTo({ bearing: 0, pitch: 0, duration: 700 });
+
+  state.buildings3D = false;
+  const btn3d = document.getElementById('buildings3DBtn');
+  if (btn3d) btn3d.classList.remove('active');
 
   // Sembunyikan follow indicator jika sedang follow diri sendiri
   updateFollowIndicator();

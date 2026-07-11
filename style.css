@@ -348,19 +348,19 @@
       background-size: var(--map-ctrl-size) var(--map-ctrl-size);
     }
 
-    /* Tombol mode navigasi custom yang digabung ke grup kontrol peta (zoom+kompas) */
-    .maplibregl-ctrl-group button#navModeBtn .nav-mode-icon {
+    /* Tombol custom (mode navigasi, gedung 3D) yang digabung ke grup kontrol peta */
+    .maplibregl-ctrl-group button .ctrl-custom-icon {
       display: flex;
       align-items: center;
       justify-content: center;
       width: 100%;
       height: 100%;
     }
-    .maplibregl-ctrl-group button#navModeBtn.active {
+    .maplibregl-ctrl-group button.active {
       background: var(--accent) !important;
       color: #fff !important;
     }
-    .maplibregl-ctrl-group button#navModeBtn.active:hover {
+    .maplibregl-ctrl-group button.active:hover {
       background: var(--accent2) !important;
     }
 

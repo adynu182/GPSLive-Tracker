@@ -29,6 +29,7 @@ export const state = {
   firstFix:      true,   // true = peta belum pernah di-center ke posisi user
   colorIdx:      0,      // counter untuk auto-assign warna ke user baru
   navMode:       false,  // true = mode navigasi aktif (peta rotate + marker segitiga)
+  buildings3D:   false,  // true = peta tilt utk menampilkan gedung 3D (fill-extrusion)
 
   // ── Follow mode ───────────────────────────────────────────────────
   followedUid:   null,   // UID anggota yang sedang di-follow
