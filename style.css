@@ -116,6 +116,16 @@
       flex-shrink: 0;
     }
 
+    /* Info room aktif (kode + tombol bagikan) di atas daftar anggota */
+    .sidebar-room {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
     .sidebar-header {
       padding: 12px 14px;
       border-bottom: 1px solid var(--border);
@@ -515,6 +525,15 @@
 
     .text-input::placeholder {
       color: var(--muted);
+    }
+
+    /* Input khusus kode room: huruf besar + rapat seperti kode asli */
+    .text-input-code {
+      text-transform: uppercase;
+      letter-spacing: 4px;
+      text-align: center;
+      font-family: 'Space Mono', monospace;
+      font-weight: 700;
     }
 
     .emoji-row {

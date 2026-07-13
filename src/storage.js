@@ -6,6 +6,7 @@ export function saveUserData() {
   localStorage.setItem('lokasi_name',  state.myName);
   localStorage.setItem('lokasi_emoji', state.myEmoji);
   localStorage.setItem('lokasi_color', state.myColor); // FIX: persist warna lintas sesi
+  if (state.roomId) localStorage.setItem('lokasi_room', state.roomId); // ingat room terakhir
 }
 
 // ─── Muat preferensi user dari localStorage saat halaman dibuka ──
@@ -26,6 +27,11 @@ export function loadUserData() {
   if (savedColor && safeColor(savedColor) === savedColor) {
     state.myColor = savedColor;
   }
+}
+
+// ─── Kode room terakhir yang dipakai user (untuk prefill tab Gabung) ──
+export function getSavedRoomCode() {
+  return localStorage.getItem('lokasi_room') || '';
 }
 
 // ─── Device ID unik per perangkat (bukan per sesi) ───────────────

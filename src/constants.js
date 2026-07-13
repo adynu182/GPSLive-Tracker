@@ -10,10 +10,26 @@ export const EMOJIS = ['🧑', '👩', '🧔', '👦', '👧', '🧑‍💻', '�
 // ─── Jumlah titik trail per anggota ──────────────────────────────
 export const MAX_TRAIL = 40;
 
-// ─── Room ID tetap — semua user masuk room yang sama ─────────────
-// Parameter ?room= di URL hanya dipakai sebagai trigger auto-login,
-// nilai aktualnya diabaikan.
-export const FIXED_ROOM = 'TRIPIN';
+// ─── Room ID acak per sesi — user bisa "Buat Room" (kode baru) atau ──
+// "Gabung Room" (masukkan kode teman). Tiap kode = room terpisah di
+// Firebase (rooms/<kode>/members), jadi tiap grup punya sesi sendiri.
+// Alfabet sengaja tanpa I/O/0/1 supaya tidak ambigu saat dibaca/diketik.
+const ROOM_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+const ROOM_CODE_LENGTH   = 6;
+
+export const genRoomCode = () => {
+  let code = '';
+  for (let i = 0; i < ROOM_CODE_LENGTH; i++) {
+    code += ROOM_CODE_ALPHABET[Math.floor(Math.random() * ROOM_CODE_ALPHABET.length)];
+  }
+  return code;
+};
+
+// ─── Bersihkan input kode room dari user ─────────────────────────
+// Huruf besar, hanya A-Z0-9 — mencegah karakter ilegal path Firebase
+// RTDB (. # $ [ ]) dan membatasi panjang biar tidak disalahgunakan.
+export const sanitizeRoomCode = s =>
+  String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 10);
 
 // ─── Generate random ID pendek ────────────────────────────────────
 export const genId = () => Math.random().toString(36).slice(2, 10);

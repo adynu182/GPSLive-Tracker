@@ -22,6 +22,31 @@
       <div class="modal-title"><span>GPS Live</span> 📍</div>
       <p class="modal-sub">Bagikan lokasi GPS secara real-time dengan teman-teman dalam satu sesi.</p>
       <div id="setupSection">
+        <div class="tabs">
+          <button class="tab active" id="tabCreate" onclick="selectRoomTab('create')">🆕 Buat Room</button>
+          <button class="tab" id="tabJoin" onclick="selectRoomTab('join')">🔑 Gabung Room</button>
+        </div>
+
+        <!-- Tab: Buat Room — kode acak sudah digenerate, tinggal dibagikan -->
+        <div id="createRoomPanel">
+          <div class="input-group">
+            <label class="input-label">Kode Room Kamu</label>
+            <div style="display:flex; gap:8px;">
+              <div class="room-id-display" id="generatedRoomCode" style="flex:1; margin-bottom:0;">------</div>
+              <button type="button" class="icon-btn" onclick="regenerateRoomCode()" title="Buat kode baru" aria-label="Buat kode baru" style="width:44px; height:auto; font-size:1.1rem; flex-shrink:0;">🔄</button>
+            </div>
+            <p class="copy-hint">Bagikan kode ini ke teman setelah mulai</p>
+          </div>
+        </div>
+
+        <!-- Tab: Gabung Room — masukkan kode dari teman -->
+        <div id="joinRoomPanel" style="display:none">
+          <div class="input-group">
+            <label class="input-label">Kode Room</label>
+            <input type="text" class="text-input text-input-code" id="roomCodeInput" placeholder="cth: K7XPQ2" maxlength="10" autocomplete="off" autocapitalize="characters">
+          </div>
+        </div>
+
         <div class="input-group">
           <label class="input-label">Nama Kamu</label>
           <input type="text" class="text-input" id="nameInput" placeholder="contoh: Budi, Sinta..." maxlength="6">
@@ -56,6 +81,14 @@
 
     <!-- Sidebar: daftar anggota -->
     <div class="sidebar">
+      <!-- Info room aktif + tombol bagikan kode (tampil setelah sesi dimulai) -->
+      <div class="sidebar-room" id="sidebarRoom" style="display:none">
+        <div class="room-info">
+          <span class="room-label">Room</span>
+          <span class="room-id" id="activeRoomId" onclick="copyRoomCode()" title="Klik untuk salin kode">------</span>
+        </div>
+        <button class="share-btn" onclick="shareRoomCode()" title="Bagikan kode room ke teman">🔗 Bagikan</button>
+      </div>
       <div class="sidebar-header" onclick="toggleMembersList()">
         <div class="sidebar-header-content">
           <span>👥 Anggota (<span id="memberCount">0</span>)</span>

@@ -1,6 +1,6 @@
-import { EMOJIS, COLORS, FIXED_ROOM, genId } from './constants.js';
+import { EMOJIS, COLORS, genId, sanitizeRoomCode } from './constants.js';
 import { state } from './state.js';
-import { loadUserData, saveUserData, getDeviceId } from './storage.js';
+import { loadUserData, saveUserData, getDeviceId, getSavedRoomCode } from './storage.js';
 import {
   startTracking, startSession, handleLogout,
   enterFullscreen, syncFullscreenBtn,
@@ -9,6 +9,10 @@ import {
 import { toggleSharing } from './gps.js';
 import { toggleMembersList, cancelFollow, focusMember, showToast } from './ui.js';
 import { fitAllMembers, toggleLabels } from './map.js';
+import {
+  initRoomTabs, selectRoomTab, regenerateRoomCode,
+  copyRoomCode, shareRoomCode,
+} from './room.js';
 import { db } from '../firebase-config.js';
 import { ref, get } from 'firebase/database';
 
@@ -34,17 +38,27 @@ function initEmoji() {
 }
 initEmoji();
 
+// ─── Room tabs (Buat Room / Gabung Room) ──────────────────────────
+// Prioritas kode prefill: ?room= di URL (link undangan) > kode terakhir
+// dipakai di perangkat ini (localStorage) > kosong (tampil kode baru).
+const urlRoom = sanitizeRoomCode(new URLSearchParams(location.search).get('room'));
+initRoomTabs(urlRoom || getSavedRoomCode());
+
 // ─── Expose ke window untuk inline onclick di HTML ────────────────
 // Fungsi-fungsi ini dipanggil dari atribut onclick="..." di index.html.
-window.startTracking     = startTracking;
-window.handleLogout      = handleLogout;
-window.toggleMembersList = toggleMembersList;
-window.cancelFollow      = cancelFollow;
-window.toggleSharing     = toggleSharing;
-window.enterFullscreen   = enterFullscreen;
-window.focusMember       = focusMember;
-window.fitAllMembers     = fitAllMembers;
-window.toggleLabels      = toggleLabels;   // ← hide/show nama marker
+window.startTracking      = startTracking;
+window.handleLogout       = handleLogout;
+window.toggleMembersList  = toggleMembersList;
+window.cancelFollow       = cancelFollow;
+window.toggleSharing      = toggleSharing;
+window.enterFullscreen    = enterFullscreen;
+window.focusMember        = focusMember;
+window.fitAllMembers      = fitAllMembers;
+window.toggleLabels       = toggleLabels;   // ← hide/show nama marker
+window.selectRoomTab      = selectRoomTab;
+window.regenerateRoomCode = regenerateRoomCode;
+window.copyRoomCode       = copyRoomCode;
+window.shareRoomCode      = shareRoomCode;
 
 // ─── Fullscreen change listeners ─────────────────────────────────
 ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'msfullscreenchange']
@@ -75,12 +89,12 @@ window.addEventListener('beforeunload', () => {
 initTabDetection();
 
 setTimeout(async () => {
-  const urlRoom = new URLSearchParams(location.search).get('room');
+  // urlRoom sudah dihitung di atas (dipakai juga untuk prefill tab room).
+  // Auto-login (lewati modal) hanya jalan kalau halaman dibuka lewat link
+  // berkode room (?room=...) DAN device ini sudah pernah isi nama sebelumnya.
   if (!urlRoom) return;
 
-  // Nilai urlRoom diabaikan — app selalu pakai FIXED_ROOM.
-  // Parameter ?room= hanya sebagai trigger auto-login.
-  state.roomId = FIXED_ROOM;
+  state.roomId = urlRoom;
   const savedName = localStorage.getItem('lokasi_name');
   if (!savedName) return;
 

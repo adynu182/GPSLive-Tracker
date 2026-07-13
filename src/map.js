@@ -42,22 +42,16 @@ export function initMap(onDragCancelFollow) {
     navBtn.addEventListener('click', toggleNavMode);
     ctrlGroup.appendChild(navBtn);
 
-    // Tombol gedung 3D (fill-extrusion sudah tersedia di style Liberty,
-    // tinggal di-tilt supaya kelihatan). Digabung di grup yang sama.
-    const buildingsBtn = document.createElement('button');
-    buildingsBtn.type = 'button';
-    buildingsBtn.id   = 'buildings3DBtn';
-    buildingsBtn.title = 'Gedung 3D';
-    buildingsBtn.setAttribute('aria-label', 'Tampilkan gedung 3D');
-    buildingsBtn.innerHTML = `
-      <span class="ctrl-custom-icon" aria-hidden="true">
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 3 20 7.5 20 16.5 12 21 4 16.5 4 7.5 Z"/>
-          <path d="M12 12 20 7.5 M12 12 4 7.5 M12 12 12 21"/>
-        </svg>
-      </span>`;
-    buildingsBtn.addEventListener('click', toggle3DBuildings);
-    ctrlGroup.appendChild(buildingsBtn);
+    // Tombol "Gedung 3D" sengaja TIDAK ditampilkan lagi supaya grup kontrol
+    // peta tidak penuh/sesak. Kapabilitas 3D-nya sendiri TETAP ada:
+    //  1) Mode navigasi (tombol panah di atas) otomatis tilt peta 45° saat
+    //     bergerak — lihat _updateCamera() & _activateNavMode() di bawah.
+    //  2) Gesture bawaan MapLibre: drag dua jari (touch) atau Ctrl+drag/
+    //     klik-kanan-drag (desktop) untuk pitch manual — tidak perlu tombol
+    //     khusus, ini default library selama tidak dimatikan lewat opsi
+    //     dragRotate/touchPitch (tidak kita matikan di initMap() atas).
+    // toggle3DBuildings() di bawah tetap diekspor kalau suatu saat mau
+    // disambung lagi ke kontrol lain (mis. menu pengaturan).
   }
 
   state.map.on('load', () => {

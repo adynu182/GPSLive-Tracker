@@ -4,11 +4,12 @@ import {
   serverTimestamp, remove, get,
 } from 'firebase/database';
 import { state } from './state.js';
-import { COLORS, FIXED_ROOM, genId, safeColor } from './constants.js';
+import { COLORS, genId, safeColor } from './constants.js';
 import { saveUserData, getDeviceId } from './storage.js';
 import { showToast, showConnectionStatus, renderMembers, updateDistances, cancelFollow } from './ui.js';
 import { initMap, updateMarker, removeMarker } from './map.js';
 import { startGPS } from './gps.js';
+import { getSelectedRoomId, renderActiveRoomInfo } from './room.js';
 
 // ─── Fullscreen ───────────────────────────────────────────────────
 // Harus dipanggil dalam user-gesture (onclick) agar browser mengizinkan.
@@ -131,6 +132,12 @@ export async function startTracking() {
   const name = document.getElementById('nameInput').value.trim();
   if (!name) { showToast('⚠️ Masukkan nama kamu dulu!'); return; }
 
+  // Room aktif ditentukan oleh tab yang dipilih user (Buat Room = kode
+  // acak yang sudah digenerate, Gabung Room = kode yang diketik user).
+  const roomId = getSelectedRoomId();
+  if (!roomId)           { showToast('⚠️ Masukkan kode room dulu!');      return; }
+  if (roomId.length < 4) { showToast('⚠️ Kode room minimal 4 karakter!'); return; }
+
   // Harus dipanggil sebelum await — browser hanya izinkan fullscreen dalam user gesture sinkron
   enterFullscreen();
   requestWakeLock();
@@ -143,14 +150,14 @@ export async function startTracking() {
     + ' <span style="font-size:0.95rem">Memeriksa...</span></div>';
 
   try {
-    const snapshot = await get(ref(db, `rooms/${FIXED_ROOM}/members`));
+    const snapshot = await get(ref(db, `rooms/${roomId}/members`));
     if (snapshot.exists()) {
       const myDevId    = getDeviceId();
       const isNameTaken = Object.values(snapshot.val()).some(m =>
         m.name && m.name.toLowerCase() === name.toLowerCase() && m.deviceId !== myDevId,
       );
       if (isNameTaken) {
-        showToast('⚠️ Nama sedang aktif digunakan!');
+        showToast('⚠️ Nama sedang aktif digunakan di room ini!');
         btn.disabled  = false;
         btn.innerHTML = originalText;
         return;
@@ -165,7 +172,7 @@ export async function startTracking() {
 
   state.myName  = name;
   state.myId    = genId();
-  state.roomId  = FIXED_ROOM;
+  state.roomId  = roomId;
   // FIX: gunakan warna tersimpan jika ada. Generate baru hanya saat pertama kali.
   if (!localStorage.getItem('lokasi_color')) {
     state.myColor = COLORS[state.colorIdx++ % COLORS.length];
@@ -201,6 +208,7 @@ export function startSession() {
 
   document.getElementById('mainToolbar').style.display = 'flex'; // tampilkan toolbar bawah
   syncFullscreenBtn();
+  renderActiveRoomInfo(); // tampilkan kode room aktif + tombol bagikan di sidebar
 
   // Init peta dengan callback drag (batalkan follow saat user geser peta)
   initMap(() => {
