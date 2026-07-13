@@ -7,6 +7,55 @@ import { focusMember, cancelFollow, showToast, updateFollowIndicator } from './u
 const SRC = uid => `trail-src-${uid}`;
 const LYR = uid => `trail-lyr-${uid}`;
 
+// ─── Animasi smooth marker antar update GPS (interpolasi rAF) ────
+// GPS cuma ngasih titik baru tiap beberapa detik — tanpa ini marker
+// "teleport" instan tiap update. Di sini kita tween dari posisi terakhir
+// ke posisi baru selama MARKER_ANIM_MS dengan easing, biar kelihatan jalan.
+const MARKER_ANIM_MS = 900;
+const _anim = {}; // uid → requestAnimationFrame id yang sedang berjalan
+
+const _easeOutCubic = t => 1 - Math.pow(1 - t, 3);
+
+function _cancelMarkerAnim(uid) {
+  if (_anim[uid] != null) {
+    cancelAnimationFrame(_anim[uid]);
+    delete _anim[uid];
+  }
+}
+
+function _animateMarkerTo(uid, toLng, toLat) {
+  const marker = state.markers[uid];
+  if (!marker) return;
+
+  _cancelMarkerAnim(uid);
+
+  const cur     = marker.getLngLat();
+  const fromLng = cur.lng, fromLat = cur.lat;
+
+  // Loncatan gak wajar (GPS baru dapat sinyal lagi, dsb) → langsung pindah
+  // tanpa animasi, biar gak "meluncur" aneh melintasi peta.
+  if (Math.hypot(toLng - fromLng, toLat - fromLat) > 0.01) {
+    marker.setLngLat([toLng, toLat]);
+    return;
+  }
+
+  const start = performance.now();
+  const tick = now => {
+    const t = Math.min(1, (now - start) / MARKER_ANIM_MS);
+    const e = _easeOutCubic(t);
+    marker.setLngLat([
+      fromLng + (toLng - fromLng) * e,
+      fromLat + (toLat - fromLat) * e,
+    ]);
+    if (t < 1) {
+      _anim[uid] = requestAnimationFrame(tick);
+    } else {
+      delete _anim[uid];
+    }
+  };
+  _anim[uid] = requestAnimationFrame(tick);
+}
+
 // ─── Inisialisasi peta MapLibre ───────────────────────────────────
 export function initMap(onDragCancelFollow) {
   state.map = new maplibregl.Map({
@@ -131,7 +180,7 @@ export function updateMarker(uid) {
 
   // ── Marker ──────────────────────────────────────────────────────
   if (state.markers[uid]) {
-    state.markers[uid].setLngLat([m.lng, m.lat]);
+    _animateMarkerTo(uid, m.lng, m.lat);
 
     if (!isNavSelf) {
       // Update lingkaran bernomor
@@ -277,6 +326,7 @@ function _activateNavMode() {
 
   // Ganti marker lingkaran → segitiga (hanya lokal, tidak dikirim ke Firebase)
   if (state.markers[state.myId]) {
+    _cancelMarkerAnim(state.myId);
     state.markers[state.myId].remove();
     delete state.markers[state.myId];
   }
@@ -289,6 +339,7 @@ function _deactivateNavMode() {
 
   // Ganti marker segitiga → lingkaran kembali
   if (state.markers[state.myId]) {
+    _cancelMarkerAnim(state.myId);
     state.markers[state.myId].remove();
     delete state.markers[state.myId];
   }
@@ -307,6 +358,7 @@ function _deactivateNavMode() {
 
 // ─── Hapus marker + trail satu anggota ───────────────────────────
 export function removeMarker(uid) {
+  _cancelMarkerAnim(uid);
   if (state.markers[uid]) { state.markers[uid].remove(); delete state.markers[uid]; }
   if (state.trails[uid]) {
     if (state.map.getLayer(LYR(uid))) state.map.removeLayer(LYR(uid));

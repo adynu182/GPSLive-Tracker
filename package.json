@@ -9,6 +9,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@turf/helpers": "^7.3.5",
+    "@turf/nearest-point-on-line": "^7.3.5",
     "firebase": "^10.12.1",
     "maplibre-gl": "^4.7.1"
   },

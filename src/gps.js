@@ -2,6 +2,7 @@ import { state } from './state.js';
 import { writeLocation, writeSharing } from './firebase-write.js';
 import { updateMarker } from './map.js';
 import { showToast, updateDistances } from './ui.js';
+import { snapToRoad } from './road-snap.js';
 
 // ─── Mulai tracking GPS via watchPosition ─────────────────────────
 export function startGPS() {
@@ -21,9 +22,7 @@ export function startGPS() {
 }
 
 // ─── Callback berhasil dapat koordinat ───────────────────────────
-function onGPS({ coords: { latitude: lat, longitude: lng, accuracy, heading, speed } }) {
-  state.myLat   = lat;
-  state.myLng   = lng;
+function onGPS({ coords: { latitude: rawLat, longitude: rawLng, accuracy, heading, speed } }) {
   state.mySpeed = speed ?? 0;
 
   // Heading dari GPS valid hanya saat bergerak (speed > 0.3 m/s ≈ 1 km/h).
@@ -31,6 +30,12 @@ function onGPS({ coords: { latitude: lat, longitude: lng, accuracy, heading, spe
   if (heading != null && state.mySpeed > 0.3) {
     state.myHeading = heading;
   }
+
+  // Snap ke jalan (client-side) sebelum dipakai — biar marker & trail
+  // nempel di jalan, bukan titik GPS mentah yang errornya bisa ±5-20m.
+  const { lat, lng } = snapToRoad(rawLat, rawLng);
+  state.myLat = lat;
+  state.myLng = lng;
 
   // Update GPS accuracy di toolbar
   const pct    = Math.max(0, Math.min(100, 100 - Math.log(accuracy) * 14));
@@ -100,16 +105,22 @@ function simulateGPS() {
       state.mySpeed   = 0.8; // simulasikan sedang berjalan pelan
     }
 
-    state.myLat = lat;
-    state.myLng = lng;
+    // Snap ke jalan juga di mode demo — trek jadi ikut jalan asli Jakarta
+    // alih-alih random walk lurus yang menembus gedung/blok.
+    // `lat`/`lng` closure di atas sengaja TETAP raw (tidak di-snap) supaya
+    // delta/heading tick berikutnya tetap dihitung dari jalur acak aslinya.
+    const snapped = snapToRoad(lat, lng);
+    state.myLat = snapped.lat;
+    state.myLng = snapped.lng;
+
     if (state.members[state.myId]) {
-      state.members[state.myId] = { ...state.members[state.myId], lat, lng };
+      state.members[state.myId] = { ...state.members[state.myId], lat: snapped.lat, lng: snapped.lng };
     }
     updateMarker(state.myId);
-    writeLocation(lat, lng);
+    writeLocation(snapped.lat, snapped.lng);
     updateDistances();
     if (state.firstFix && state.mapReady) {
-      state.map.jumpTo({ center: [lng, lat], zoom: 15 });
+      state.map.jumpTo({ center: [snapped.lng, snapped.lat], zoom: 15 });
       state.firstFix = false;
     }
   };
