@@ -56,11 +56,13 @@ function _animateMarkerTo(uid, toLng, toLat) {
   _anim[uid] = requestAnimationFrame(tick);
 }
 
+const DEFAULT_STYLE_URL = 'https://tiles.openfreemap.org/styles/liberty';
+
 // ─── Inisialisasi peta MapLibre ───────────────────────────────────
-export function initMap(onDragCancelFollow) {
+export function initMap(onDragCancelFollow, styleUrl) {
   state.map = new maplibregl.Map({
     container:          'map',
-    style:              'https://tiles.openfreemap.org/styles/liberty',
+    style:              styleUrl || DEFAULT_STYLE_URL,
     center:             [106.8, -6.2],
     zoom:               5,
     bearing:            0,
@@ -367,6 +369,25 @@ export function removeMarker(uid) {
   }
   delete state.trailPts[uid];
 }
+
+// ─── Ganti style peta (dipakai saat toggle dark/light mode) ──────
+// setStyle() mengganti SELURUH layer stack peta, jadi source/layer trail
+// custom kita ikut kehapus. Marker (elemen DOM overlay MapLibre) TIDAK
+// ikut hilang karena bukan bagian dari style — jadi cuma trail yang perlu
+// dibangun ulang, lewat updateMarker() yang sudah otomatis re-create
+// source/layer trail kalau belum ada (lihat blok "Trail" di atas).
+export function setMapStyle(styleUrl) {
+  if (!state.map) return;
+
+  state.trails = {}; // paksa updateMarker() membangun ulang semua trail
+
+  state.map.once('style.load', () => {
+    Object.keys(state.members).forEach(uid => updateMarker(uid));
+  });
+
+  state.map.setStyle(styleUrl);
+}
+
 
 // ─── Toggle visibilitas label nama di atas marker ─────────────────
 // Menggunakan CSS class di #map — tidak perlu menyentuh tiap marker.

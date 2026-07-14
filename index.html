@@ -3,6 +3,17 @@
 
 <head>
   <meta charset="UTF-8">
+  <script>
+    // Set data-theme SEBELUM body dirender, biar gak ada kedip tema
+    // terang sekilas saat halaman dibuka dalam mode gelap.
+    (function () {
+      try {
+        if (localStorage.getItem('lokasi_theme') === 'dark') {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      } catch (e) {}
+    })();
+  </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -88,6 +99,7 @@
           <span class="room-id" id="activeRoomId" onclick="copyRoomCode()" title="Klik untuk salin kode">------</span>
         </div>
         <button class="share-btn" onclick="shareRoomCode()" title="Bagikan kode room ke teman">🔗 Bagikan</button>
+        <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Mode gelap" aria-label="Mode gelap">🌙</button>
       </div>
       <div class="sidebar-header" onclick="toggleMembersList()">
         <div class="sidebar-header-content">

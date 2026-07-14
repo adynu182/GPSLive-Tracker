@@ -13,6 +13,7 @@ import {
   initRoomTabs, selectRoomTab, regenerateRoomCode,
   copyRoomCode, shareRoomCode,
 } from './room.js';
+import { initTheme, toggleTheme } from './theme.js';
 import { db } from '../firebase-config.js';
 import { ref, get } from 'firebase/database';
 
@@ -37,6 +38,7 @@ function initEmoji() {
   });
 }
 initEmoji();
+initTheme();
 
 // ─── Room tabs (Buat Room / Gabung Room) ──────────────────────────
 // Prioritas kode prefill: ?room= di URL (link undangan) > kode terakhir
@@ -59,6 +61,7 @@ window.selectRoomTab      = selectRoomTab;
 window.regenerateRoomCode = regenerateRoomCode;
 window.copyRoomCode       = copyRoomCode;
 window.shareRoomCode      = shareRoomCode;
+window.toggleTheme        = toggleTheme;
 
 // ─── Fullscreen change listeners ─────────────────────────────────
 ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'msfullscreenchange']

@@ -14,8 +14,36 @@
       --online: #187d47;
       --card-bg: #ffffff;
       --border: #d1d5db;
+      /* Teks/ikon di atas permukaan warna accent (tombol, tab aktif) —
+         sama di kedua tema karena accent-color sengaja dijaga cukup
+         gelap/pekat di keduanya supaya teks terang selalu kebaca. */
+      --on-accent: #f2f6f6;
       /* Ukuran tombol grup kontrol peta (zoom/kompas/navigasi) = 2x default MapLibre (29px) */
       --map-ctrl-size: 58px;
+    }
+
+    /* ── TEMA GELAP — di-toggle lewat tombol 🌙/☀️ di sidebar ────────
+       Cuma override variabel di atas; hampir semua elemen sudah pakai
+       var(--...) jadi otomatis ikut berubah tanpa perlu duplikasi rule. */
+    [data-theme="dark"] {
+      --primary-color: #2fa39c;
+      --accent-color: #1c9a94;
+      --accent: #1c9a94;
+      --accent2: #2fb8b1;
+      --accent3: #6bcfc9;
+      --bg-light: #0e1621;
+      --danger-color: #e2504f;
+      --text: #e6ebf2;
+      --muted: #8fa0bf;
+      --online: #2fbf76;
+      --card-bg: #17202e;
+      --border: #2a3549;
+    }
+
+    /* Transisi halus saat toggle tema — cuma di permukaan besar, elemen
+       kecil (tombol/kartu) sudah punya transition:all sendiri masing-masing */
+    body, .sidebar, .main-toolbar, .bottom-bar, .modal, #map {
+      transition: background-color .25s ease, color .25s ease, border-color .25s ease;
     }
 
     * {
@@ -75,7 +103,7 @@
 
     .share-btn {
       background: var(--accent-color);
-      color: var(--bg-light);
+      color: var(--on-accent);
       border: none;
       border-radius: 8px;
       padding: 8px 14px;
@@ -92,7 +120,30 @@
     }
 
     .share-btn:hover {
-      background: #2b9a9d;
+      background: var(--accent2);
+      transform: translateY(-1px);
+    }
+
+    /* Tombol toggle tema terang/gelap, di sebelah tombol Bagikan */
+    .theme-toggle-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all .2s;
+      flex-shrink: 0;
+    }
+
+    .theme-toggle-btn:hover {
+      border-color: var(--accent-color);
+      color: var(--accent-color);
       transform: translateY(-1px);
     }
 
@@ -143,7 +194,7 @@
     }
 
     .sidebar-header:hover {
-      background: #f5f5f5;
+      background: var(--bg-light);
     }
 
     .sidebar-header-content {
@@ -325,7 +376,7 @@
     /* MAP */
     #map {
       flex: 1;
-      background: #f0f0f0;
+      background: var(--bg-light);
     }
 
     /* MapLibre: styling NavigationControl (zoom + kompas) agar sesuai tema */
@@ -587,7 +638,7 @@
 
     .tab.active {
       background: var(--accent-color);
-      color: var(--bg-light);
+      color: var(--on-accent);
       border-color: var(--accent-color);
     }
 
@@ -622,7 +673,7 @@
       width: 100%;
       padding: 12px;
       background: var(--accent-color);
-      color: var(--bg-light);
+      color: var(--on-accent);
       border: none;
       border-radius: 10px;
       font-family: 'Inter', sans-serif;
@@ -634,7 +685,7 @@
     }
 
     .primary-btn:hover {
-      background: #2b9a9d;
+      background: var(--accent2);
       transform: translateY(-2px);
     }
 
@@ -864,12 +915,18 @@
 
 
       .room-info {
-        max-width: 200px;
+        max-width: 160px;
       }
 
       .share-btn {
         padding: 6px 10px;
         font-size: 0.7rem;
+      }
+
+      .theme-toggle-btn {
+        width: 30px;
+        height: 30px;
+        font-size: 0.88rem;
       }
 
     }

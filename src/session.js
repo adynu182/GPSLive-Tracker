@@ -10,6 +10,7 @@ import { showToast, showConnectionStatus, renderMembers, updateDistances, cancel
 import { initMap, updateMarker, removeMarker } from './map.js';
 import { startGPS } from './gps.js';
 import { getSelectedRoomId, renderActiveRoomInfo } from './room.js';
+import { getCurrentMapStyleUrl } from './theme.js';
 
 // ─── Fullscreen ───────────────────────────────────────────────────
 // Harus dipanggil dalam user-gesture (onclick) agar browser mengizinkan.
@@ -210,13 +211,14 @@ export function startSession() {
   syncFullscreenBtn();
   renderActiveRoomInfo(); // tampilkan kode room aktif + tombol bagikan di sidebar
 
-  // Init peta dengan callback drag (batalkan follow saat user geser peta)
+  // Init peta dengan callback drag (batalkan follow saat user geser peta),
+  // pakai style sesuai tema aktif (light/dark) yang sedang dipilih user
   initMap(() => {
     if (state.followedUid) {
       cancelFollow();
       showToast('🗺️ Mode ikuti dibatalkan');
     }
-  });
+  }, getCurrentMapStyleUrl());
 
   // Pre-assign nomor supaya GPS pertama sudah punya nomor
   if (!state.memberNumbers[state.myId]) {
