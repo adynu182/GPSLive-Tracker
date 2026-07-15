@@ -1,6 +1,7 @@
 import { point as turfPoint } from '@turf/helpers';
 import nearestPointOnLine from '@turf/nearest-point-on-line';
 import { state } from './state.js';
+import { showToast } from './ui.js';
 
 // ─── Snap ke jalan (client-side, tanpa server tambahan) ──────────
 // Style peta "Liberty" (OpenFreeMap) berbasis skema OpenMapTiles — geometri
@@ -16,6 +17,7 @@ const SNAP_MAX_DIST_M   = 25; // toleransi snap (~akurasi GPS smartphone wajar)
 const SNAP_QUERY_PIXELS = 60; // radius pencarian fitur jalan di layar (px)
 
 export function snapToRoad(lat, lng) {
+  if (!state.roadSnapOn) return { lat, lng };
   if (!state.mapReady || !state.map) return { lat, lng };
 
   let pt;
@@ -63,4 +65,18 @@ export function snapToRoad(lat, lng) {
 
   const [snapLng, snapLat] = best.geometry.coordinates;
   return { lat: snapLat, lng: snapLng };
+}
+
+// ─── Toggle manual road snap ON/OFF ───────────────────────────────
+// Kalau dimatikan, snapToRoad() di atas langsung short-circuit dan
+// balikin koordinat GPS mentah (lihat guard state.roadSnapOn di atas).
+export function toggleRoadSnap() {
+  state.roadSnapOn = !state.roadSnapOn;
+
+  const btn = document.getElementById('roadSnapBtn');
+  if (btn) btn.classList.toggle('active', state.roadSnapOn);
+
+  showToast(state.roadSnapOn
+    ? '🛣️ Snap ke jalan aktif'
+    : '📍 Snap ke jalan nonaktif — pakai posisi GPS asli');
 }

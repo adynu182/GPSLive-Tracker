@@ -22,6 +22,7 @@ export const state = {
   myLng:         null,
   myHeading:     null,   // derajat 0–360 dari Utara (null saat diam / belum dapat)
   mySpeed:       0,      // m/s dari GPS — dipakai sebagai threshold validasi heading
+  roadSnapOn:    true,   // true = titik GPS di-snap ke jalan terdekat (lihat road-snap.js)
 
   // ── Map (MapLibre GL JS) ──────────────────────────────────────────
   map:           null,

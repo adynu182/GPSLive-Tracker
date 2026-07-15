@@ -7,6 +7,7 @@ import {
   initTabDetection, requestWakeLock,
 } from './session.js';
 import { toggleSharing } from './gps.js';
+import { toggleRoadSnap } from './road-snap.js';
 import { toggleMembersList, cancelFollow, focusMember, showToast } from './ui.js';
 import { fitAllMembers, toggleLabels } from './map.js';
 import {
@@ -64,6 +65,7 @@ window.copyRoomCode       = copyRoomCode;
 window.shareRoomCode      = shareRoomCode;
 window.toggleTheme        = toggleTheme;
 window.toggleRoute        = toggleRoute;
+window.toggleRoadSnap     = toggleRoadSnap;   // ← toggle manual snap-to-road
 
 // ─── Fullscreen change listeners ─────────────────────────────────
 ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'msfullscreenchange']
