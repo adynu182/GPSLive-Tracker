@@ -57,7 +57,7 @@ function _animateMarkerTo(uid, toLng, toLat) {
   _anim[uid] = requestAnimationFrame(tick);
 }
 
-const DEFAULT_STYLE_URL = 'https://tiles.openfreemap.org/styles/liberty';
+const DEFAULT_STYLE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
 
 // ─── Inisialisasi peta MapLibre ───────────────────────────────────
 export function initMap(onDragCancelFollow, styleUrl) {
