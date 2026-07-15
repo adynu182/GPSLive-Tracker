@@ -3,6 +3,7 @@ import { writeLocation, writeSharing } from './firebase-write.js';
 import { updateMarker } from './map.js';
 import { showToast, updateDistances } from './ui.js';
 import { snapToRoad } from './road-snap.js';
+import { maybeRecalculateRoute } from './route.js';
 
 // ─── Mulai tracking GPS via watchPosition ─────────────────────────
 export function startGPS() {
@@ -58,6 +59,7 @@ function onGPS({ coords: { latitude: rawLat, longitude: rawLng, accuracy, headin
   updateMarker(state.myId);
   writeLocation(lat, lng);
   updateDistances();
+  maybeRecalculateRoute(); // no-op kalau gak ada rute aktif / belum waktunya re-route
 
   // Center peta ke posisi user saat fix pertama — MapLibre: [lng, lat]
   if (state.firstFix && state.mapReady) {

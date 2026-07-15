@@ -453,6 +453,58 @@
     .fab-fullscreen:hover  { background: var(--bg-light); }
     .fab-fullscreen:active { transform: scale(0.92); }
 
+    /* Tombol kontrol rute — ditumpuk di atas fab-fullscreen, kanan-bawah peta */
+    .fab-route {
+      position: absolute;
+      bottom: 78px;
+      right: 16px;
+      z-index: 500;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+      cursor: pointer;
+      padding: 0;
+      font-size: 1.3rem;
+      flex-shrink: 0;
+      transition: background 0.18s, color 0.18s, transform 0.12s, border-color .18s;
+    }
+    .fab-route:hover  { background: var(--bg-light); }
+    .fab-route:active { transform: scale(0.92); }
+
+    /* Mode "picking" — nunggu user ketuk peta buat pilih tujuan */
+    .fab-route.picking {
+      border-color: var(--accent-color);
+      color: var(--accent-color);
+      animation: route-pulse 1.2s ease-in-out infinite;
+    }
+
+    /* Rute aktif — tombol jadi tombol batal */
+    .fab-route.active {
+      background: var(--danger-color);
+      border-color: var(--danger-color);
+      color: #fff;
+    }
+
+    @keyframes route-pulse {
+      0%, 100% { transform: scale(1); }
+      50%      { transform: scale(1.08); }
+    }
+
+    /* Marker tujuan rute (pin) */
+    .route-dest-marker {
+      font-size: 2rem;
+      line-height: 1;
+      filter: drop-shadow(0 2px 3px rgba(0,0,0,0.4));
+      cursor: default;
+    }
+
     /* BOTTOM BAR */
     .bottom-bar {
       display: flex;
@@ -482,6 +534,14 @@
 
     .dist-chip:hover {
       border-color: var(--accent-color);
+    }
+
+    /* Info jarak+waktu tujuan (gantiin chip anggota selagi rute aktif) */
+    .route-info-chip {
+      background: var(--card-bg);
+      border-color: var(--accent-color);
+      border-width: 1.5px;
+      cursor: default;
     }
 
     .dist-dot {

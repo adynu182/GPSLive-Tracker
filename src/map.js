@@ -3,6 +3,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import { state } from './state.js';
 import { sanitize, MAX_TRAIL } from './constants.js';
 import { focusMember, cancelFollow, showToast, updateFollowIndicator } from './ui.js';
+import { handleMapClick, redrawRouteIfActive } from './route.js';
 
 const SRC = uid => `trail-src-${uid}`;
 const LYR = uid => `trail-lyr-${uid}`;
@@ -120,6 +121,10 @@ export function initMap(onDragCancelFollow, styleUrl) {
     }
     onDragCancelFollow();
   });
+
+  // Tap peta = pilih titik tujuan rute — handleMapClick sendiri yang
+  // ngecek apakah lagi mode "picking" atau enggak (no-op kalau bukan).
+  state.map.on('click', e => handleMapClick(e.lngLat));
 }
 
 // ─── Elemen HTML marker lingkaran bernomor (anggota biasa) ────────
@@ -383,6 +388,7 @@ export function setMapStyle(styleUrl) {
 
   state.map.once('style.load', () => {
     Object.keys(state.members).forEach(uid => updateMarker(uid));
+    redrawRouteIfActive();
   });
 
   state.map.setStyle(styleUrl);

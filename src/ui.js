@@ -134,7 +134,7 @@ export function toggleMembersList() {
 }
 
 // ─── Distance bar (bawah layar) ───────────────────────────────────
-function haversine(a, b, c, d) {
+export function haversine(a, b, c, d) {
   const R = 6371000, r = Math.PI / 180;
   const dL  = (c - a) * r;
   const dLn = (d - b) * r;
@@ -147,7 +147,15 @@ const fmtDist = m => m < 1000
   ? Math.round(m) + ' m'
   : (m / 1000).toFixed(1) + ' km';
 
+const fmtDuration = s => s < 3600
+  ? Math.round(s / 60) + ' menit'
+  : Math.floor(s / 3600) + ' jam ' + Math.round((s % 3600) / 60) + ' menit';
+
 export function updateDistances() {
+  // Saat rute navigasi aktif, bottom-bar dipakai buat info jarak+waktu
+  // tujuan (lihat renderRouteInfo di bawah) — jangan ditimpa chip anggota.
+  if (state.routeMode === 'active') return;
+
   const bar = document.getElementById('bottomBar');
   if (state.myLat == null) return;
 
@@ -173,3 +181,17 @@ export function updateDistances() {
     bar.appendChild(chip);
   });
 }
+
+// ─── Info jarak+waktu tujuan di bottom-bar, dipakai saat rute aktif ──
+// Menggantikan chip anggota sementara (lihat guard di updateDistances).
+export function renderRouteInfo(distanceM, durationS) {
+  const bar = document.getElementById('bottomBar');
+  if (!bar) return;
+  bar.innerHTML = `
+    <div class="dist-chip route-info-chip">
+      <span class="dist-label">🚗 Menuju tujuan</span>
+      <span class="dist-value">${fmtDist(distanceM)} · ${fmtDuration(durationS)}</span>
+    </div>
+  `;
+}
+

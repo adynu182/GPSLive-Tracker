@@ -14,6 +14,7 @@ import {
   copyRoomCode, shareRoomCode,
 } from './room.js';
 import { initTheme, toggleTheme } from './theme.js';
+import { toggleRoute } from './route.js';
 import { db } from '../firebase-config.js';
 import { ref, get } from 'firebase/database';
 
@@ -62,6 +63,7 @@ window.regenerateRoomCode = regenerateRoomCode;
 window.copyRoomCode       = copyRoomCode;
 window.shareRoomCode      = shareRoomCode;
 window.toggleTheme        = toggleTheme;
+window.toggleRoute        = toggleRoute;
 
 // ─── Fullscreen change listeners ─────────────────────────────────
 ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'msfullscreenchange']

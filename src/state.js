@@ -35,6 +35,12 @@ export const state = {
   followedUid:   null,   // UID anggota yang sedang di-follow
   isFollowFlying: false, // true saat animasi flyTo() awal masih berjalan
 
+  // ── Rute navigasi (OSRM, mobil saja) ──────────────────────────────
+  routeMode:     'idle', // 'idle' | 'picking' (nunggu tap peta) | 'active' (rute tampil)
+  routeDest:     null,   // {lat, lng} titik tujuan hasil tap peta
+  routeInfo:     null,   // {distance, duration} meter & detik, hasil terakhir dari OSRM
+  routeLastCalc: null,   // {lat, lng, time} posisi+waktu hitung terakhir, buat throttle re-route
+
   // ── Member data ───────────────────────────────────────────────────
   members:       {},     // uid → {name, emoji, color, lat, lng, sharing, isMe}
   markers:       {},     // uid → maplibregl.Marker (HTML marker)
