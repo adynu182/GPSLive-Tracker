@@ -7,7 +7,7 @@ const THEME_KEY = 'lokasi_theme';
 // gelap juga, bukan cuma chrome UI-nya doang.
 const MAP_STYLES = {
   light: 'https://tiles.openfreemap.org/styles/liberty',
-  dark:  'https://tiles.openfreemap.org/styles/dark',
+  dark:  'https://tiles.openfreemap.org/styles/fiord',
 };
 
 // Warna status bar HP (meta theme-color) per tema, biar nyatu sama UI
