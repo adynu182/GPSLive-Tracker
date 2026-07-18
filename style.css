@@ -478,6 +478,38 @@
     .fab-route:hover  { background: var(--bg-light); }
     .fab-route:active { transform: scale(0.92); }
 
+    /* Tombol "Install App" — ditumpuk di atas fab-route, kanan-bawah peta.
+       Disembunyikan default; JS nampilin cuma kalau browser fire event
+       beforeinstallprompt (artinya app memang belum ke-install). */
+    .fab-install {
+      position: absolute;
+      bottom: 136px;
+      right: 16px;
+      z-index: 500;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--accent-color);
+      border: 1px solid var(--accent-color);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+      cursor: pointer;
+      padding: 0;
+      flex-shrink: 0;
+      animation: install-pop 1.8s ease-in-out infinite;
+      transition: background 0.18s, transform 0.12s;
+    }
+    .fab-install:hover  { background: var(--primary-color); }
+    .fab-install:active { transform: scale(0.92); }
+
+    @keyframes install-pop {
+      0%, 100% { box-shadow: 0 2px 8px rgba(0,0,0,0.18), 0 0 0 0 rgba(24,122,125,0.35); }
+      50%      { box-shadow: 0 2px 8px rgba(0,0,0,0.18), 0 0 0 7px rgba(24,122,125,0); }
+    }
+
     /* Mode "picking" — nunggu user ketuk peta buat pilih tujuan */
     .fab-route.picking {
       border-color: var(--accent-color);

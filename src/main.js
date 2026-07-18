@@ -18,6 +18,50 @@ import { initTheme, toggleTheme } from './theme.js';
 import { toggleRoute } from './route.js';
 import { db } from '../firebase-config.js';
 import { ref, get } from 'firebase/database';
+import { registerSW } from 'virtual:pwa-register';
+
+// ─── Service Worker (PWA) — precache app shell + cache tile/font/rute ──
+// registerType:'autoUpdate' di vite.config.js → SW baru langsung dipakai
+// di background begitu ke-deploy, gak perlu reload manual dari user.
+registerSW({
+  immediate: true,
+  onOfflineReady() {
+    showToast('📴 App siap dipakai offline');
+  },
+});
+
+// ─── Install PWA ke Android (tombol mengambang di peta) ───────────
+// Chrome/Edge Android fire 'beforeinstallprompt' cuma kalau manifest+SW
+// valid DAN app belum ke-install — momen itulah kita tampilkan tombolnya.
+let _deferredInstallPrompt = null;
+
+function initInstallPrompt() {
+  // Sudah jalan sebagai app terinstall (dibuka dari home screen) → skip.
+  if (window.matchMedia('(display-mode: standalone)').matches) return;
+
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault(); // cegah mini-infobar bawaan Chrome, pakai tombol sendiri
+    _deferredInstallPrompt = e;
+    const btn = document.getElementById('installAppBtn');
+    if (btn) btn.style.display = 'flex';
+  });
+
+  window.addEventListener('appinstalled', () => {
+    _deferredInstallPrompt = null;
+    const btn = document.getElementById('installAppBtn');
+    if (btn) btn.style.display = 'none';
+    showToast('🎉 GPS Live terpasang di HP kamu!');
+  });
+}
+
+async function installApp() {
+  if (!_deferredInstallPrompt) return;
+  const btn = document.getElementById('installAppBtn');
+  if (btn) btn.style.display = 'none'; // prompt browser cuma bisa dipakai sekali
+  _deferredInstallPrompt.prompt();
+  await _deferredInstallPrompt.userChoice;
+  _deferredInstallPrompt = null;
+}
 
 // ─── Muat preferensi tersimpan sebelum apapun ────────────────────
 loadUserData();
@@ -66,6 +110,9 @@ window.shareRoomCode      = shareRoomCode;
 window.toggleTheme        = toggleTheme;
 window.toggleRoute        = toggleRoute;
 window.toggleRoadSnap     = toggleRoadSnap;   // ← toggle manual snap-to-road
+window.installApp         = installApp;       // ← tombol install PWA
+
+initInstallPrompt();
 
 // ─── Fullscreen change listeners ─────────────────────────────────
 ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'msfullscreenchange']

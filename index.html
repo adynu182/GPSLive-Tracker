@@ -20,6 +20,8 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="theme-color" content="#247066">
   <title>Real-time GPS Sharing</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
   <meta name="description" content="Aplikasi pelacakan GPS real-time berbasis Vite" />
   <link rel="stylesheet" href="./style.css">
@@ -130,6 +132,15 @@
       </button>
       <!-- Tombol kontrol rute (mobil), ditumpuk di atas tombol fullscreen -->
       <button id="routeControlBtn" class="fab-route" onclick="toggleRoute()" title="Buat rute ke tujuan" aria-label="Buat rute ke tujuan">🚗</button>
+      <!-- Tombol install PWA, ditumpuk di atas tombol rute — hidden sampai
+           browser konfirmasi app memang bisa/belum di-install (lihat main.js) -->
+      <button id="installAppBtn" class="fab-install" onclick="installApp()" title="Install app ke HP" aria-label="Install app ke HP" style="display:none">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3v12"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/>
+        </svg>
+      </button>
     </div>
 
   </div>
