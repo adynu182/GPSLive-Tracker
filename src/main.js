@@ -4,7 +4,7 @@ import { loadUserData, saveUserData, getDeviceId, getSavedRoomCode } from './sto
 import {
   startTracking, startSession, handleLogout,
   enterFullscreen, syncFullscreenBtn,
-  initTabDetection, requestWakeLock,
+  initTabDetection, requestWakeLock, startOfflineNav,
 } from './session.js';
 import { toggleSharing } from './gps.js';
 import { toggleRoadSnap } from './road-snap.js';
@@ -86,6 +86,16 @@ function initEmoji() {
 initEmoji();
 initTheme();
 
+// ─── Deteksi offline — kasih tau user di modal join kalau fitur room
+// butuh internet, dan "Mode Navigasi Offline" tetap bisa dipakai. ────
+function syncOfflineHint() {
+  const hint = document.getElementById('offlineHint');
+  if (hint) hint.style.display = navigator.onLine ? 'none' : 'block';
+}
+syncOfflineHint();
+window.addEventListener('online', syncOfflineHint);
+window.addEventListener('offline', syncOfflineHint);
+
 // ─── Room tabs (Buat Room / Gabung Room) ──────────────────────────
 // Prioritas kode prefill: ?room= di URL (link undangan) > kode terakhir
 // dipakai di perangkat ini (localStorage) > kosong (tampil kode baru).
@@ -111,6 +121,7 @@ window.toggleTheme        = toggleTheme;
 window.toggleRoute        = toggleRoute;
 window.toggleRoadSnap     = toggleRoadSnap;   // ← toggle manual snap-to-road
 window.installApp         = installApp;       // ← tombol install PWA
+window.startOfflineNav    = startOfflineNav;  // ← "Mode Navigasi Offline" di modal join
 
 initInstallPrompt();
 
@@ -147,6 +158,10 @@ setTimeout(async () => {
   // Auto-login (lewati modal) hanya jalan kalau halaman dibuka lewat link
   // berkode room (?room=...) DAN device ini sudah pernah isi nama sebelumnya.
   if (!urlRoom) return;
+  // Offline: get() cek nama bakal gagal & startSession() bisa macet nunggu
+  // listener room yang gak akan pernah nyala tanpa koneksi. Biarkan modal
+  // biasa tampil — user bisa pilih "Mode Navigasi Offline" secara manual.
+  if (!navigator.onLine) return;
 
   state.roomId = urlRoom;
   const savedName = localStorage.getItem('lokasi_name');

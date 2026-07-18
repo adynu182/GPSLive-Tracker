@@ -14,6 +14,7 @@ export const state = {
   // ── Room ─────────────────────────────────────────────────────────
   roomId:   null,
   sharingOn: true,
+  offlineMode: false, // true = mode navigasi tanpa room/Firebase (lihat startOfflineNav di session.js)
 
   // ── GPS ──────────────────────────────────────────────────────────
   watchId:       null,   // ID dari watchPosition (untuk clearWatch)

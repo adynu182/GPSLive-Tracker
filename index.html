@@ -69,6 +69,12 @@
           <div class="emoji-row" id="emojiRow"></div>
         </div>
         <button class="primary-btn" onclick="startTracking()">📍 Mulai Bagikan Lokasi</button>
+
+        <div class="or-divider">atau</div>
+        <button type="button" class="secondary-btn" onclick="startOfflineNav()">🗺️ Mode Navigasi Offline (tanpa room)</button>
+        <p class="copy-hint" id="offlineHint" style="display:none; margin:10px 0 0;">
+          📴 Kamu sedang offline — fitur room butuh internet. Mode navigasi offline tetap bisa dipakai buat lihat posisi kamu di peta yang sudah pernah dibuka.
+        </p>
       </div>
       <div id="loadingSection" style="display:none">
         <div class="loader-wrap">
@@ -100,16 +106,19 @@
           <span class="room-label">Room</span>
           <span class="room-id" id="activeRoomId" onclick="copyRoomCode()" title="Klik untuk salin kode">------</span>
         </div>
+        <span class="offline-nav-label">🗺️ Mode Navigasi Offline</span>
         <button class="share-btn" onclick="shareRoomCode()" title="Bagikan kode room ke teman">🔗 Bagikan</button>
         <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Mode gelap" aria-label="Mode gelap">🌙</button>
       </div>
-      <div class="sidebar-header" onclick="toggleMembersList()">
-        <div class="sidebar-header-content">
-          <span>👥 Anggota (<span id="memberCount">0</span>)</span>
-          <span class="collapse-icon" id="collapseIcon">▼</span>
+      <div id="membersSection">
+        <div class="sidebar-header" onclick="toggleMembersList()">
+          <div class="sidebar-header-content">
+            <span>👥 Anggota (<span id="memberCount">0</span>)</span>
+            <span class="collapse-icon" id="collapseIcon">▼</span>
+          </div>
         </div>
+        <div class="members-list" id="membersList"></div>
       </div>
-      <div class="members-list" id="membersList"></div>
     </div>
 
     <!-- Peta -->
@@ -212,6 +221,7 @@
           <div class="toggle-track"></div>
         </label>
       </div>
+      <span class="offline-nav-badge">📴 Offline</span>
 
       <div class="tb-sep"></div>
       

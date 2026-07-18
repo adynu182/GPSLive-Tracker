@@ -129,6 +129,10 @@ export async function startTracking() {
     showToast('⚠️ Firebase belum siap. Isi konfigurasi VITE_FIREBASE_* terlebih dahulu.');
     return;
   }
+  if (!navigator.onLine) {
+    showToast('📴 Kamu sedang offline — fitur room butuh internet. Coba "Mode Navigasi Offline" di bawah.');
+    return;
+  }
 
   const name = document.getElementById('nameInput').value.trim();
   if (!name) { showToast('⚠️ Masukkan nama kamu dulu!'); return; }
@@ -305,4 +309,53 @@ export function startSession() {
   });
 
   startGPS();
+}
+
+// ─── Mode Navigasi Offline (tanpa room, tanpa Firebase) ────────────
+// Entry point alternatif dari modal join (tombol "Mode Navigasi Offline"),
+// bypass total alur room/Firebase supaya app tetap kepake buat lihat posisi
+// sendiri di peta cache walau gak ada koneksi internet sama sekali.
+// writeLocation()/writeSharing() di firebase-write.js otomatis no-op karena
+// state.roomId tetap null selamanya di mode ini — gak perlu guard tambahan
+// di gps.js.
+export function startOfflineNav() {
+  enterFullscreen();
+  requestWakeLock();
+
+  state.offlineMode = true;
+  state.myId        = state.myId || genId();
+  state.myName      = state.myName || 'Saya';
+  state.sharingOn   = true; // wajib true biar updateMarker()/jumpTo() jalan (lihat gps.js)
+  if (!localStorage.getItem('lokasi_color')) {
+    state.myColor = COLORS[state.colorIdx++ % COLORS.length];
+  }
+
+  // "Member" lokal buat diri sendiri — gak pernah dikirim ke Firebase, cuma
+  // supaya updateMarker(uid)/renderMembers() yang generic per-uid tetap
+  // bisa dipakai apa adanya (sama seperti alur room biasa).
+  state.members[state.myId] = {
+    name: state.myName, emoji: state.myEmoji, color: state.myColor,
+    lat: null, lng: null, sharing: true, isMe: true,
+  };
+  if (!state.memberNumbers[state.myId]) {
+    state.memberNumbers[state.myId] = state.nextMemberNumber++;
+  }
+
+  state.isTabActive = true;
+  if (state.broadcastChannel) {
+    state.broadcastChannel.postMessage({ type: 'TAB_ACTIVE' });
+  }
+
+  document.getElementById('joinOverlay').classList.remove('show');
+  document.getElementById('mainToolbar').style.display = 'flex';
+  document.getElementById('sidebarRoom').style.display  = 'flex'; // wadah .offline-nav-label (normalnya di-toggle renderActiveRoomInfo())
+  document.body.classList.add('offline-nav-mode'); // CSS sembunyikan UI yang butuh room (lihat style.css)
+  syncFullscreenBtn();
+
+  initMap(() => {
+    if (state.followedUid) cancelFollow();
+  }, getCurrentMapStyleUrl());
+
+  startGPS();
+  showToast('🗺️ Mode navigasi offline aktif — lokasi tidak dibagikan ke siapa pun');
 }

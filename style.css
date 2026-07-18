@@ -124,6 +124,21 @@
       transform: translateY(-1px);
     }
 
+    /* Label pengganti room-info saat "Mode Navigasi Offline" aktif —
+       ditampilkan lewat body.offline-nav-mode (lihat aturan di bawah). */
+    .offline-nav-label {
+      display: none;
+      align-items: center;
+      flex: 1;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 5px 12px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--accent-color);
+    }
+
     /* Tombol toggle tema terang/gelap, di sebelah tombol Bagikan */
     .theme-toggle-btn {
       background: none;
@@ -1136,6 +1151,15 @@
     .tb-toggle-label.sharing-on  { color: var(--online); }
     .tb-toggle-label.sharing-off { color: var(--muted); }
 
+    /* Badge pengganti sharing-toggle saat "Mode Navigasi Offline" aktif */
+    .offline-nav-badge {
+      display: none;
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
     /* Logout button */
     .tb-logout-btn {
       display: flex; align-items: center; justify-content: center;
@@ -1152,6 +1176,26 @@
 
     /* Bottom bar placeholder */
     .bottom-bar-placeholder { color: var(--muted); font-size: 0.75rem; }
+
+    /* ── Mode Navigasi Offline ───────────────────────────────────────
+       Dipicu tombol "Mode Navigasi Offline" di modal join → startOfflineNav()
+       di session.js nambahin class ini ke <body>. Semua UI yang butuh
+       room/Firebase (kode room, tombol bagikan, daftar anggota, jarak
+       antar-anggota, toggle sharing) disembunyikan; diganti label statis
+       yang nunjukin app lagi jalan tanpa room. */
+    body.offline-nav-mode .room-info,
+    body.offline-nav-mode .share-btn,
+    body.offline-nav-mode #membersSection,
+    body.offline-nav-mode #bottomBar,
+    body.offline-nav-mode .tb-toggle-wrap {
+      display: none !important;
+    }
+    body.offline-nav-mode .offline-nav-label {
+      display: flex !important;
+    }
+    body.offline-nav-mode .offline-nav-badge {
+      display: block !important;
+    }
 
     /* Responsive toolbar */
     @media(max-width:480px) {
